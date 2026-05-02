@@ -1,5 +1,5 @@
 /**
- * Asset — typed shape + view bindings for a piece of agent world-state.
+ * Asset — typed shape + view bindings for a piece of agent scene-state.
  *
  *   const Gmail = defineAsset({
  *     type:        "gmail/account",
@@ -10,7 +10,7 @@
  *     mockState:   () => ({ messages: [...], labels: [...], drafts: [] }),
  *   });
  *
- * Anyone using scene-otel + worldstate gets `Gmail` as a typed handle:
+ * Anyone using scene-otel + scene-state gets `Gmail` as a typed handle:
  *   scene.set(Gmail, world.gmail)            // schema-validated snapshot
  *   Gmail.defaultView.toMarkdown(world.gmail) // agent-readable summary
  *   Gmail.defaultView.toHTML(world.gmail)     // dashboard-ready visual

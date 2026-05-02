@@ -1,7 +1,7 @@
 {
-  "name": "world-state",
+  "name": "scene-state",
   "version": "0.1.0",
-  "description": "Typed asset shapes + visual + headless views for AI agents. The visual language for agent world-state.",
+  "description": "Typed asset shapes + visual + headless views for AI agents. The visual language for agent scene-state.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",

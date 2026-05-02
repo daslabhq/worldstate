@@ -1,4 +1,4 @@
-# worldstate
+# scene-state
 
 > One asset definition. Three rendering targets. The agent's view of the world.
 
@@ -10,18 +10,18 @@ Typed asset shapes + visual + headless **views** for AI agents. Same definition 
 
 Ships with **10 typed assets** out of the box (Gmail, Salesforce, Slack, Google Sheets, Google Calendar, Airtable, Jira, Notion, Stripe, GitHub) plus a library of view primitives (Table, Metric, List, KeyValue, Calendar, Status, Document, Image, Plan).
 
-**[Live gallery →](https://daslabhq.github.io/worldstate/)**
+**[Live gallery →](https://daslabhq.github.io/scene-state/)**
 
 ## Install
 
 ```bash
-npm install world-state
+npm install scene-state
 ```
 
 ## Use
 
 ```ts
-import { Gmail, Salesforce } from "world-state";
+import { Gmail, Salesforce } from "scene-state";
 
 const inboxState = await fetchGmail();        // your code
 
@@ -47,14 +47,14 @@ Today most agents do one of two things with their world state, and both are bad:
 1. **Dump raw JSON into the context** — wastes tokens, hurts comprehension, makes long-running agents expensive
 2. **Hand-write a custom summarizer per app** — every team rebuilds Gmail-summarize, Salesforce-summarize, Stripe-summarize, … — none consistent, none shared
 
-worldstate gives you **one definition, three rendering targets, ten apps batteries-included.** Lazy users get good defaults. Power users override per view.
+scene-state gives you **one definition, three rendering targets, ten apps batteries-included.** Lazy users get good defaults. Power users override per view.
 
 ## API
 
 ### `defineAsset({ type, schema, defaultView, … })`
 
 ```ts
-import { defineAsset, defineView } from "world-state";
+import { defineAsset, defineView } from "scene-state";
 
 const Gmail = defineAsset({
   type:        "gmail/account",
@@ -88,7 +88,7 @@ const GmailInboxView = defineView<GmailState>({
 Most asset views compose a small library of generic primitives:
 
 ```ts
-import { primitives } from "world-state";
+import { primitives } from "scene-state";
 
 const { TableView, MetricView, ListView, KeyValueView,
         CalendarView, StatusView, DocumentView, ImageView, PlanView } = primitives;
@@ -107,7 +107,7 @@ Each primitive ships HTML + Markdown out of the box.
 When emitting trace events with [scene-otel](https://github.com/daslabhq/scene-otel), pass the asset directly — the schema becomes the type contract for the snapshot, and the default view powers the scrubber's rendering automatically:
 
 ```ts
-import { Gmail } from "world-state";
+import { Gmail } from "scene-state";
 import { scene } from "scene-otel";
 
 scene.set(Gmail.type, world.gmail);              // schema-validated emit
@@ -118,7 +118,7 @@ scene.milestone("inbox_clean", {
 });
 ```
 
-The scene-otel scrubber auto-detects registered worldstate assets and renders cards with the asset's default view.
+The scene-otel scrubber auto-detects registered scene-state assets and renders cards with the asset's default view.
 
 ## Schemas
 
@@ -148,6 +148,6 @@ MIT. See [LICENSE](./LICENSE).
 
 ## Related
 
-- [`scene-otel`](https://github.com/daslabhq/scene-otel) — wire format for snapshotting agent world-state to OTel events. Pairs naturally.
+- [`scene-otel`](https://github.com/daslabhq/scene-otel) — wire format for snapshotting agent scene-state to OTel events. Pairs naturally.
 - [`agent-otel`](https://github.com/mirkokiefer/agent-otel) — OTel router for agent telemetry.
 - [`autocompile`](https://github.com/mirkokiefer/autocompile) — observes repeated agent runs, compiles invariant parts to code.

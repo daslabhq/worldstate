@@ -1,5 +1,5 @@
 /**
- * worldstate — typed asset shapes + visual + headless views for AI agents.
+ * scene-state — typed asset shapes + visual + headless views for AI agents.
  *
  * Same view definition produces:
  *   - HTML        for human-visual rendering

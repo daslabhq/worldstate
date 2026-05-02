@@ -190,23 +190,23 @@ const html = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>worldstate · view gallery</title>
+  <title>scene-state · view gallery</title>
   <style>${css}</style>
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div>
-        <div class="brand">worldstate <small>· view gallery</small></div>
+        <div class="brand">scene-state <small>· view gallery</small></div>
         <div class="subtitle">One asset definition · three rendering targets · the agent's view of the world.</div>
       </div>
-      <a class="gh-link" href="https://github.com/daslabhq/worldstate">GitHub →</a>
+      <a class="gh-link" href="https://github.com/daslabhq/scene-state">GitHub →</a>
     </div>
   </header>
   <main>
     <div class="intro">
       <h2>What you're looking at</h2>
-      <p>Each card below is one <code>defineAsset()</code> declaration from the worldstate library. Every asset comes with a default <code>view</code> that renders the same state to <b>HTML</b> (left — the version humans see) and <b>Markdown</b> (right — the version an LLM sees in its context window).</p>
+      <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders the same state to <b>HTML</b> (left — the version humans see) and <b>Markdown</b> (right — the version an LLM sees in its context window).</p>
       <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping the raw JSON, while preserving the structure agents need to reason about.</p>
       <div class="toc">
         ${cards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
@@ -215,7 +215,7 @@ const html = `<!DOCTYPE html>
     ${cards.map(cardHtml).join("")}
   </main>
   <footer>
-    worldstate · MIT · <a href="https://github.com/daslabhq/worldstate">github.com/daslabhq/worldstate</a> · ${cards.length} assets shown
+    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${cards.length} assets shown
   </footer>
 </body>
 </html>
