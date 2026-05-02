@@ -25,9 +25,48 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .intro h2 { margin: 0 0 8px; font-size: 18px; }
 .intro p { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .intro code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
 .toc a { padding: 4px 10px; background: var(--bg); border-radius: 999px; font-size: 12px; text-decoration: none; color: var(--fg); border: 1px solid var(--border); }
 .toc a:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.toc-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-left: 4px; margin-right: 4px; }
+.toc-section:first-child { margin-left: 0; }
+.section-h { margin-top: 36px; margin-bottom: 4px; font-size: 20px; }
+.section-p { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+.ext-pill { background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ----- iOS home-screen mosaic ----- */
+.mosaic { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 24px; padding: 28px; margin-bottom: 32px; }
+.mosaic-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.mosaic-sub { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px; }
+.mosaic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+@media (max-width: 800px) { .mosaic-grid { grid-template-columns: repeat(3, 1fr); } }
+.mosaic-tile { background: rgba(255,255,255,0.95); border-radius: 16px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+/* ----- App icon (size=icon) ----- */
+.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; position: relative; }
+.ws-app-emoji { font-size: 36px; }
+.ws-app-name { font-size: 11px; color: var(--muted); font-weight: 500; }
+.ws-app-badge { position: absolute; top: -2px; right: -2px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--red); color: white; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+/* ----- Small widget (2x2) ----- */
+.ws-small { padding: 14px; height: 100%; display: flex; flex-direction: column; }
+.ws-small-head { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+.ws-small-num { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.ws-small-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
+.ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ----- Size strip (per-asset all-sizes display) ----- */
+.size-strip { display: grid; grid-template-columns: 100px 158px 240px 1fr; gap: 16px; margin-top: 16px; align-items: stretch; }
+@media (max-width: 1100px) { .size-strip { grid-template-columns: 1fr; } }
+.size-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow: hidden; }
+.size-cell.icon { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.size-cell.small { aspect-ratio: 1; }
+.size-cell.medium { aspect-ratio: 2/1; min-height: 130px; }
+.size-cell.large { min-height: 240px; }
+.size-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.size-tokens { color: var(--accent); font-weight: 500; }
+.md-mini { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; max-height: 100px; overflow: hidden; color: var(--fg); }
 .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
 .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .card-name { font-size: 18px; font-weight: 600; }
@@ -126,14 +165,873 @@ footer a { color: var(--muted); }
     </div>
   </header>
   <main>
+    <div class="mosaic">
+      <div class="mosaic-title">An agent home screen for canonical types</div>
+      <div class="mosaic-sub">Each tile is the <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;color:#fff">icon</code> rendering of one asset's defaultView — exactly what an iPhone home-screen widget would look like at 1×1 size. Click an icon to jump to its full size strip.</div>
+      <div class="mosaic-grid">
+        <a class="mosaic-tile" href="#email" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">📧</div><div class="ws-app-name">Email</div><div class="ws-app-badge">2</div></div></a><a class="mosaic-tile" href="#message" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">💬</div><div class="ws-app-name">Chat</div><div class="ws-app-badge">3</div></div></a><a class="mosaic-tile" href="#contact" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">👤</div><div class="ws-app-name">Contacts</div><div class="ws-app-badge">3</div></div></a><a class="mosaic-tile" href="#event" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">📅</div><div class="ws-app-name">Events</div><div class="ws-app-badge">4</div></div></a><a class="mosaic-tile" href="#task" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">✓</div><div class="ws-app-name">Tasks</div><div class="ws-app-badge">2</div></div></a><a class="mosaic-tile" href="#document" style="text-decoration:none"><div class="ws-app-icon"><div class="ws-app-emoji">📓</div><div class="ws-app-name">Docs</div><div class="ws-app-badge">3</div></div></a>
+      </div>
+    </div>
+
     <div class="intro">
       <h2>What you're looking at</h2>
-      <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders the same state to <b>HTML</b> (left — the version humans see) and <b>Markdown</b> (right — the version an LLM sees in its context window).</p>
-      <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping the raw JSON, while preserving the structure agents need to reason about.</p>
+      <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders state at <b>five sizes</b> (icon · small · medium · large · xlarge — modeled on Apple WidgetKit + Daslab's <code>WidgetSize</code>) and <b>three formats</b> (HTML · Markdown · Text).</p>
+      <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping raw JSON. The icon version is ~95% cheaper.</p>
+      <p><b>Two layers:</b> <i>Canonical types</i> (Email, Message, Contact, …) are abstract primitives anyone can implement. <i>Vendor implementations</i> (Gmail, Slack, …) declare which canonical they extend.</p>
       <div class="toc">
+        <span class="toc-section">Canonical:</span>
+        <a href="#email">Email</a><a href="#message">Message</a><a href="#contact">Contact</a><a href="#event">Event</a><a href="#task">Task</a><a href="#document">Document</a>
+        <span class="toc-section">Vendors:</span>
         <a href="#gmail">Gmail</a><a href="#salesforce">Salesforce</a><a href="#slack">Slack</a><a href="#googlesheets">GoogleSheets</a><a href="#googlecalendar">GoogleCalendar</a><a href="#airtable">Airtable</a><a href="#jira">Jira</a><a href="#notion">Notion</a><a href="#stripe">Stripe</a><a href="#github">GitHub</a>
       </div>
     </div>
+
+    <h2 class="section-h">Canonical types</h2>
+    <p class="section-p">Abstract primitives. Use them directly, or as targets for vendor extensions.</p>
+    
+  <section class="card" id="email">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Email</div>
+        <div class="card-meta">
+          <span class="pill">email/mailbox</span>
+          ·
+          view: <span class="mono">EmailInbox</span>
+          
+        </div>
+        <div class="card-desc">Canonical mailbox — list of email messages.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-list"><div class="ws-title">Inbox · 4 messages · 2 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        
+      </li></ul></div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~47 tokens</span></div>
+        <pre class="md-pre"><b>Inbox (4 msgs, 2 unread)</b>
+
+• <b>Invoice — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com
+• <b>Morning briefing</b> — from newsletter@nyt.com</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~7 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">📧</div><div class="ws-app-name">Email</div><div class="ws-app-badge">2</div></div>
+    <div class="md-mini" style="margin-top:8px">📧 Email · 2 unread</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~13 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">📧 Inbox <span class="ws-small-num">2 unread</span></div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">Invoice — overdue</div>
+            <div class="ws-small-sub">alice@vendor.com</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox</b> · 2 unread
+_latest:_ &quot;Invoice — overdue&quot; — alice@vendor.com</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~47 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 4 messages · 2 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (4 msgs, 2 unread)</b>
+
+• <b>Invoice — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com
+• <b>Morning briefing</b> — from newsletter@nyt…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~47 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 4 messages · 2 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        <div class="ws-li-detail">Past due, please confirm.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        <div class="ws-li-detail">Got a sec?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        <div class="ws-li-detail">Your payout has been deposited.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        <div class="ws-li-detail">Top stories…</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (4 msgs, 2 unread)</b>
+
+• <b>Invoice — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com
+• <b>Morning briefing</b> — from newsletter@nyt…</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="message">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Message</div>
+        <div class="card-meta">
+          <span class="pill">message/channels</span>
+          ·
+          view: <span class="mono">MessagingActivity</span>
+          
+        </div>
+        <div class="card-desc">Canonical messaging — channels + messages.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">bob: Looks good — bumping to 25%.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">carol: Paused c-retain. CPA was high.</div>
+      </li></ul></div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~39 tokens</span></div>
+        <pre class="md-pre"><b>#engineering</b> (2 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+
+<b>#marketing</b> (1 messages)
+&gt; carol: Paused c-retain. CPA was high.</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~7 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">💬</div><div class="ws-app-name">Chat</div><div class="ws-app-badge">3</div></div>
+    <div class="md-mini" style="margin-top:8px">💬 Chat · 3 messages</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~12 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">💬 2 active channels</div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">#engineering</div>
+            <div class="ws-small-sub">2 messages</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Chat</b> · 2 channels active
+_top:_ #engineering (2 msgs)</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~39 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">bob: Looks good — bumping to 25%.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">carol: Paused c-retain. CPA was high.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (2 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+
+<b>#marketing</b> (1 messages)
+&gt; carol: Paused c-retain. CPA was high.</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~39 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">bob: Looks good — bumping to 25%.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">carol: Paused c-retain. CPA was high.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (2 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+
+<b>#marketing</b> (1 messages)
+&gt; carol: Paused c-retain. CPA was high.</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="contact">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Contact</div>
+        <div class="card-meta">
+          <span class="pill">contact/list</span>
+          ·
+          view: <span class="mono">ContactList</span>
+          
+        </div>
+        <div class="card-desc">Canonical contact list — people with email, phone, role.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-table"><div class="ws-title">3 contacts</div><table><thead><tr><th>Name</th><th>Email</th><th>Title</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>Director of Ops</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>VP Marketing</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>CEO</td></tr></tbody></table></div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~56 tokens</span></div>
+        <pre class="md-pre"><b>Contacts</b>
+
+| Name | Title | Email |
+| --- | --- | --- |
+| Jordan Lee | Director of Ops | jordan@acme.com |
+| Maria Santos | VP Marketing | maria@brightwave.com |
+| Aiden Park | CEO | aiden@meridian.com |</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~5 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">👤</div><div class="ws-app-name">Contacts</div><div class="ws-app-badge">3</div></div>
+    <div class="md-mini" style="margin-top:8px">👤 Contacts · 3</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~12 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">👤 3 contacts</div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">Jordan Lee</div>
+            <div class="ws-small-sub">Director of Ops</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Contacts</b> · 3
+_first:_ Jordan Lee (Director of Ops)</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~56 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">3 contacts</div><table><thead><tr><th>Name</th><th>Email</th><th>Title</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>Director of Ops</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>VP Marketing</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>CEO</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Contacts</b>
+
+| Name | Title | Email |
+| --- | --- | --- |
+| Jordan Lee | Director of Ops | jordan@acme.com |
+| Maria Santos | VP Marketing | maria@brightwave.com |
+| Aiden Park | CEO | aiden@meridian.com |</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~69 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">3 contacts</div><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Title</th><th>Company</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>+1-555-0101</td><td>Director of Ops</td><td>Acme</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>+1-555-0182</td><td>VP Marketing</td><td>Brightwave</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>+1-555-0301</td><td>CEO</td><td>Meridian</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Contacts</b>
+
+| Name | Email | Title | Company |
+| --- | --- | --- | --- |
+| Jordan Lee | jordan@acme.com | Director of Ops | Acme |
+| Maria Santos | maria@brightwave.com | VP Marketing | Brightwave |
+| Aiden Park | aiden@meridian.com | CEO…</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="event">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Event</div>
+        <div class="card-meta">
+          <span class="pill">event/calendar</span>
+          ·
+          view: <span class="mono">UpcomingEvents</span>
+          
+        </div>
+        <div class="card-desc">Canonical calendar events — what&#39;s scheduled.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site</div>
+          
+          
+        </div>
+      </div></div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~68 tokens</span></div>
+        <pre class="md-pre"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call · Zoom
+• <b>May 4, 2026</b> — Off-site</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~7 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">📅</div><div class="ws-app-name">Events</div><div class="ws-app-badge">4</div></div>
+    <div class="md-mini" style="margin-top:8px">📅 Events · 4 upcoming</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~9 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">📅 Next up</div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">Off-site</div>
+            <div class="ws-small-sub">all day</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Next event</b> — 7:00 AM · <b>Off-site</b></div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call · Zoom
+• <b>May 4, 2026</b> — Off-site</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          <div class="ws-cal-att">alice@team, bob@team</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call · Zoom
+• <b>May 4, 2026</b> — Off-site</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="task">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Task</div>
+        <div class="card-meta">
+          <span class="pill">task/list</span>
+          ·
+          view: <span class="mono">TaskBoard</span>
+          
+        </div>
+        <div class="card-desc">Canonical task list — work items with status + assignee.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-grid-3">
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">In progress</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Done</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+        </div>
+        <div class="ws-table"><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td></tr></tbody></table></div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~79 tokens</span></div>
+        <pre class="md-pre"><b>Tasks</b>
+
+| Title | Status | Assignee |
+| --- | --- | --- |
+| Wire up scene-bench AB adapter | done | alice |
+| Add canonical types to scene-state | in_progress | bob |
+| Land daslab.dev/labs page | todo | alice |
+| iOS scene viewer: image card aspect bug | blocked | carol |</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~7 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">✓</div><div class="ws-app-name">Tasks</div><div class="ws-app-badge">2</div></div>
+    <div class="md-mini" style="margin-top:8px">✓ Tasks · 2 open</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~16 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">✓ Tasks</div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">1 in progress · 1 done</div>
+            <div class="ws-small-sub" style="color:var(--red,#ef4444)">1 blocked</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Tasks</b> · 1 in progress · 1 done · ⚠️ 1 blocked</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~79 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">In progress</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Done</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+        </div>
+        <div class="ws-table"><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Tasks</b>
+
+| Title | Status | Assignee |
+| --- | --- | --- |
+| Wire up scene-bench AB adapter | done | alice |
+| Add canonical types to scene-state | in_progress | bob |
+| Land daslab.dev/labs page | todo | alice |
+| iOS scene viewer: image…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~79 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">In progress</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Done</div>
+      
+    </div>
+          <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+        </div>
+        <div class="ws-table"><div class="ws-title">Tasks</div><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th><th>Priority</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td><td>high</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td><td>high</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td><td>medium</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td><td>medium</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Tasks</b>
+
+| Title | Status | Assignee |
+| --- | --- | --- |
+| Wire up scene-bench AB adapter | done | alice |
+| Add canonical types to scene-state | in_progress | bob |
+| Land daslab.dev/labs page | todo | alice |
+| iOS scene viewer: image…</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="document">
+    <div class="card-head">
+      <div>
+        <div class="card-name">Document</div>
+        <div class="card-meta">
+          <span class="pill">document/collection</span>
+          ·
+          view: <span class="mono">FeaturedDocument</span>
+          
+        </div>
+        <div class="card-desc">Canonical document collection — pages with title + body.</div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      <div class="ws-doc-byline">ops team</div>
+      <div class="ws-doc-meta">modified 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div>
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~60 tokens</span></div>
+        <pre class="md-pre"><span class="h">### Q2 launch plan</span>
+
+_ops team_
+
+Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~5 tokens</span>
+    </div>
+    <div class="ws-app-icon"><div class="ws-app-emoji">📓</div><div class="ws-app-name">Docs</div><div class="ws-app-badge">3</div></div>
+    <div class="md-mini" style="margin-top:8px">📓 Docs · 3</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~12 tokens</span>
+    </div>
+    <div class="ws-small">
+          <div class="ws-small-head">📓 3 pages</div>
+          <div class="ws-small-body">
+            <div class="ws-small-title">Q2 launch plan</div>
+            <div class="ws-small-sub">2026-04-30</div>
+          </div>
+        </div>
+    <div class="md-mini" style="margin-top:8px"><b>Docs</b> · 3 pages
+_latest:_ &quot;Q2 launch plan&quot; (2026-04-30)</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~60 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      <div class="ws-doc-byline">ops team</div>
+      <div class="ws-doc-meta">modified 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div>
+    <div class="md-mini" style="margin-top:8px"><span class="h">### Q2 launch plan</span>
+
+_ops team_
+
+Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to produ…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~72 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      <div class="ws-doc-byline">ops team</div>
+      <div class="ws-doc-meta">modified 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div>
+        <div class="ws-list" style="margin-top:16px"><div class="ws-title">More pages</div><ul><li class="ws-li"><div class="ws-li-title">On-call runbook</div><div class="ws-li-sub">2026-04-29</div></li><li class="ws-li"><div class="ws-li-title">Customer feedback · April</div><div class="ws-li-sub">2026-04-28</div></li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><span class="h">### Q2 launch plan</span>
+
+Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with b…</div>
+  </div>
+
+      </div>
+    </div>
+  </section>
+
+
+    <h2 class="section-h">Vendor implementations</h2>
+    <p class="section-p">Vendor-specific shapes that extend (where applicable) one or more canonical types.</p>
     
   <section class="card" id="gmail">
     <div class="card-head">
@@ -143,13 +1041,14 @@ footer a { color: var(--muted); }
           <span class="pill">gmail/account</span>
           ·
           view: <span class="mono">GmailInbox</span>
+          · extends: <span class="mono ext-pill">email/mailbox</span>
         </div>
         <div class="card-desc">A Gmail mailbox — inbox, drafts, threads, labels.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">Invoice #4421 — overdue</span>
@@ -188,7 +1087,7 @@ footer a { color: var(--muted); }
       </li></ul></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~68 tokens</span></div>
         <pre class="md-pre"><b>Inbox (5 messages, 3 unread)</b>
 
 • <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
@@ -196,6 +1095,210 @@ footer a { color: var(--muted); }
 • <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
 • <b>Morning briefing — Apr 30</b> — from newsletter@nyt.com
 • <b>Re: standup notes</b> — from bob@team.com</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice #4421 — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        <div class="ws-li-detail">Hi, just a heads up the invoice for $1,240 is past due. Can you confirm payment?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question about Q2 plan</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        <div class="ws-li-detail">Got a sec to chat about the launch timeline for the new product?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        <div class="ws-li-detail">Your payout of $1,200 has been deposited.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing — Apr 30</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        <div class="ws-li-detail">Top stories: …</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Re: standup notes</span>
+          
+        </div>
+        <div class="ws-li-sub">bob@team.com</div>
+        <div class="ws-li-detail">Adding two things to the agenda.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+
+• <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
+• **Morning…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice #4421 — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        <div class="ws-li-detail">Hi, just a heads up the invoice for $1,240 is past due. Can you confirm payment?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question about Q2 plan</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        <div class="ws-li-detail">Got a sec to chat about the launch timeline for the new product?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        <div class="ws-li-detail">Your payout of $1,200 has been deposited.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing — Apr 30</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        <div class="ws-li-detail">Top stories: …</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Re: standup notes</span>
+          
+        </div>
+        <div class="ws-li-sub">bob@team.com</div>
+        <div class="ws-li-detail">Adding two things to the agenda.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+
+• <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
+• **Morning…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice #4421 — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        <div class="ws-li-detail">Hi, just a heads up the invoice for $1,240 is past due. Can you confirm payment?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question about Q2 plan</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        <div class="ws-li-detail">Got a sec to chat about the launch timeline for the new product?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        <div class="ws-li-detail">Your payout of $1,200 has been deposited.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing — Apr 30</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        <div class="ws-li-detail">Top stories: …</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Re: standup notes</span>
+          
+        </div>
+        <div class="ws-li-sub">bob@team.com</div>
+        <div class="ws-li-detail">Adding two things to the agenda.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+
+• <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
+• **Morning…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~68 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Invoice #4421 — overdue</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alice@vendor.com</div>
+        <div class="ws-li-detail">Hi, just a heads up the invoice for $1,240 is past due. Can you confirm payment?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Quick question about Q2 plan</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">ceo@company.com</div>
+        <div class="ws-li-detail">Got a sec to chat about the launch timeline for the new product?</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Payout completed: $1,200</span>
+          <span class="ws-badge">unread</span>
+        </div>
+        <div class="ws-li-sub">alerts@stripe.com</div>
+        <div class="ws-li-detail">Your payout of $1,200 has been deposited.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Morning briefing — Apr 30</span>
+          
+        </div>
+        <div class="ws-li-sub">newsletter@nyt.com</div>
+        <div class="ws-li-detail">Top stories: …</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Re: standup notes</span>
+          
+        </div>
+        <div class="ws-li-sub">bob@team.com</div>
+        <div class="ws-li-detail">Adding two things to the agenda.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+
+• <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
+• <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
+• <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
+• **Morning…</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -208,13 +1311,14 @@ footer a { color: var(--muted); }
           <span class="pill">salesforce/account</span>
           ·
           view: <span class="mono">SalesforcePipeline</span>
+          · extends: <span class="mono ext-pill">contact/list</span>
         </div>
         <div class="card-desc">Salesforce CRM — contacts, opportunities, cases, accounts.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-grid-2">
       <div class="ws-metric">
       <div class="ws-metric-value">$128k</div>
@@ -230,7 +1334,7 @@ footer a { color: var(--muted); }
     <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~69 tokens</span></div>
         <pre class="md-pre"><b>Salesforce Pipeline</b>
 
 | Name | Stage | Amount |
@@ -239,6 +1343,126 @@ footer a { color: var(--muted); }
 | Acme Quarterly Renewal | Negotiation | $84000 |
 | Brightwave Expansion | Proposal | $32000 |
 | Helion Pilot | Discovery | $12000 |</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~69 tokens</span>
+    </div>
+    <div class="ws-grid-2">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$128k</div>
+      <div class="ws-metric-label">Open pipeline</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">$245k</div>
+      <div class="ws-metric-label">Closed won (this period)</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+
+| Name | Stage | Amount |
+| --- | --- | --- |
+| Meridian Corp Platform Deal | Closed Won | $245000 |
+| Acme Quarterly Renewal | Negotiation | $84000 |
+| Brightwave Expansion | Proposal | $32000 |
+| Helion Pilot | Di…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~69 tokens</span>
+    </div>
+    <div class="ws-grid-2">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$128k</div>
+      <div class="ws-metric-label">Open pipeline</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">$245k</div>
+      <div class="ws-metric-label">Closed won (this period)</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+
+| Name | Stage | Amount |
+| --- | --- | --- |
+| Meridian Corp Platform Deal | Closed Won | $245000 |
+| Acme Quarterly Renewal | Negotiation | $84000 |
+| Brightwave Expansion | Proposal | $32000 |
+| Helion Pilot | Di…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~69 tokens</span>
+    </div>
+    <div class="ws-grid-2">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$128k</div>
+      <div class="ws-metric-label">Open pipeline</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">$245k</div>
+      <div class="ws-metric-label">Closed won (this period)</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+
+| Name | Stage | Amount |
+| --- | --- | --- |
+| Meridian Corp Platform Deal | Closed Won | $245000 |
+| Acme Quarterly Renewal | Negotiation | $84000 |
+| Brightwave Expansion | Proposal | $32000 |
+| Helion Pilot | Di…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~69 tokens</span>
+    </div>
+    <div class="ws-grid-2">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$128k</div>
+      <div class="ws-metric-label">Open pipeline</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">$245k</div>
+      <div class="ws-metric-label">Closed won (this period)</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+
+| Name | Stage | Amount |
+| --- | --- | --- |
+| Meridian Corp Platform Deal | Closed Won | $245000 |
+| Acme Quarterly Renewal | Negotiation | $84000 |
+| Brightwave Expansion | Proposal | $32000 |
+| Helion Pilot | Di…</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -251,13 +1475,14 @@ footer a { color: var(--muted); }
           <span class="pill">slack/workspace</span>
           ·
           view: <span class="mono">SlackActivity</span>
+          · extends: <span class="mono ext-pill">message/channels</span>
         </div>
         <div class="card-desc">Slack workspace — channels, messages, DMs, threads.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">#engineering</span>
@@ -282,7 +1507,7 @@ footer a { color: var(--muted); }
       </li></ul></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~81 tokens</span></div>
         <pre class="md-pre"><b>#engineering</b> (3 messages)
 &gt; alice: Deploy is green; canary at 5%.
 &gt; bob: Looks good — bumping to 25%.
@@ -296,6 +1521,162 @@ footer a { color: var(--muted); }
 &gt; frank: Page from PagerDuty — checking #db-replicas.</pre>
       </div>
     </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~81 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">3 messages</div>
+        <div class="ws-li-detail">carol: Hit a flake on test_billing — retrying.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing-ops</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">eve: Nice — let&#39;s revisit creative on Friday.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#support-incidents</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+&gt; carol: Hit a flake on test_billing — retrying.
+
+<b>#marketing-ops</b> (2 messages)
+&gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
+&gt;…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~81 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">3 messages</div>
+        <div class="ws-li-detail">carol: Hit a flake on test_billing — retrying.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing-ops</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">eve: Nice — let&#39;s revisit creative on Friday.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#support-incidents</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+&gt; carol: Hit a flake on test_billing — retrying.
+
+<b>#marketing-ops</b> (2 messages)
+&gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
+&gt;…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~81 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">3 messages</div>
+        <div class="ws-li-detail">carol: Hit a flake on test_billing — retrying.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing-ops</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">eve: Nice — let&#39;s revisit creative on Friday.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#support-incidents</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+&gt; carol: Hit a flake on test_billing — retrying.
+
+<b>#marketing-ops</b> (2 messages)
+&gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
+&gt;…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~81 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#engineering</span>
+          
+        </div>
+        <div class="ws-li-sub">3 messages</div>
+        <div class="ws-li-detail">carol: Hit a flake on test_billing — retrying.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#marketing-ops</span>
+          
+        </div>
+        <div class="ws-li-sub">2 messages</div>
+        <div class="ws-li-detail">eve: Nice — let&#39;s revisit creative on Friday.</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#support-incidents</span>
+          
+        </div>
+        <div class="ws-li-sub">1 message</div>
+        <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+&gt; alice: Deploy is green; canary at 5%.
+&gt; bob: Looks good — bumping to 25%.
+&gt; carol: Hit a flake on test_billing — retrying.
+
+<b>#marketing-ops</b> (2 messages)
+&gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
+&gt;…</div>
+  </div>
+
+      </div>
+    </div>
   </section>
 
   <section class="card" id="googlesheets">
@@ -306,13 +1687,14 @@ footer a { color: var(--muted); }
           <span class="pill">google_sheets/account</span>
           ·
           view: <span class="mono">SheetsOverview</span>
+          
         </div>
         <div class="card-desc">Google Sheets — spreadsheets, worksheets, rows.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">FX Rates · Rates</span>
@@ -330,11 +1712,123 @@ footer a { color: var(--muted); }
       </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~23 tokens</span></div>
         <pre class="md-pre"><b>Sheets</b>
 
 • <b>FX Rates / Rates</b> — 3 rows
 • <b>Account Hierarchy / Tiers</b> — 3 rows</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~23 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">FX Rates · Rates</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Currency, USDRate, Updated</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Account Hierarchy · Tiers</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Account, Tier</div>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+
+• <b>FX Rates / Rates</b> — 3 rows
+• <b>Account Hierarchy / Tiers</b> — 3 rows</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~23 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">FX Rates · Rates</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Currency, USDRate, Updated</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Account Hierarchy · Tiers</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Account, Tier</div>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+
+• <b>FX Rates / Rates</b> — 3 rows
+• <b>Account Hierarchy / Tiers</b> — 3 rows</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~23 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">FX Rates · Rates</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Currency, USDRate, Updated</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Account Hierarchy · Tiers</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Account, Tier</div>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+
+• <b>FX Rates / Rates</b> — 3 rows
+• <b>Account Hierarchy / Tiers</b> — 3 rows</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~23 tokens</span>
+    </div>
+    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">FX Rates · Rates</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Currency, USDRate, Updated</div>
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Account Hierarchy · Tiers</span>
+          
+        </div>
+        <div class="ws-li-sub">3 rows</div>
+        <div class="ws-li-detail">Columns: Account, Tier</div>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+
+• <b>FX Rates / Rates</b> — 3 rows
+• <b>Account Hierarchy / Tiers</b> — 3 rows</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -347,13 +1841,14 @@ footer a { color: var(--muted); }
           <span class="pill">google_calendar/account</span>
           ·
           view: <span class="mono">CalendarNextUp</span>
+          · extends: <span class="mono ext-pill">event/calendar</span>
         </div>
         <div class="card-desc">Google Calendar — events, attendees, locations.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
         <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
         <div class="ws-cal-body">
@@ -399,7 +1894,7 @@ footer a { color: var(--muted); }
       </div></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~107 tokens</span></div>
         <pre class="md-pre"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
@@ -408,6 +1903,238 @@ footer a { color: var(--muted); }
 • <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunch w/ Maria · Tartine
 • <b>May 3 at 4:00 PM → 5:00 PM</b> — Design review
 • <b>May 4, 2026</b> — Off-site planning</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~107 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          <div class="ws-cal-att">alice@team, bob@team, carol@team</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          <div class="ws-cal-att">jordan@x.com, ceo@company.com</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call: Brightwave</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 12:30 PM → 1:30 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Lunch w/ Maria</div>
+          <div class="ws-cal-loc">📍 Tartine</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 4:00 PM → 5:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Design review</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site planning</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~107 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          <div class="ws-cal-att">alice@team, bob@team, carol@team</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          <div class="ws-cal-att">jordan@x.com, ceo@company.com</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call: Brightwave</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 12:30 PM → 1:30 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Lunch w/ Maria</div>
+          <div class="ws-cal-loc">📍 Tartine</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 4:00 PM → 5:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Design review</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site planning</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~107 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          <div class="ws-cal-att">alice@team, bob@team, carol@team</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          <div class="ws-cal-att">jordan@x.com, ceo@company.com</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call: Brightwave</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 12:30 PM → 1:30 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Lunch w/ Maria</div>
+          <div class="ws-cal-loc">📍 Tartine</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 4:00 PM → 5:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Design review</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site planning</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~107 tokens</span>
+    </div>
+    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Daily standup</div>
+          
+          <div class="ws-cal-att">alice@team, bob@team, carol@team</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 1:00 PM → 2:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Sales review · Q2</div>
+          <div class="ws-cal-loc">📍 Conf Room 3</div>
+          <div class="ws-cal-att">jordan@x.com, ceo@company.com</div>
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 2 at 3:30 PM → 4:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Customer call: Brightwave</div>
+          <div class="ws-cal-loc">📍 Zoom</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 12:30 PM → 1:30 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Lunch w/ Maria</div>
+          <div class="ws-cal-loc">📍 Tartine</div>
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 3 at 4:00 PM → 5:00 PM</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Design review</div>
+          
+          
+        </div>
+      </div><div class="ws-cal-row">
+        <div class="ws-cal-time">May 4, 2026</div>
+        <div class="ws-cal-body">
+          <div class="ws-cal-title">Off-site planning</div>
+          
+          
+        </div>
+      </div></div>
+    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+
+• <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
+• <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
+• <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -420,17 +2147,18 @@ footer a { color: var(--muted); }
           <span class="pill">airtable/account</span>
           ·
           view: <span class="mono">AirtableRecords</span>
+          · extends: <span class="mono ext-pill">contact/list</span>
         </div>
         <div class="card-desc">Airtable — bases, tables, records.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~115 tokens</span></div>
         <pre class="md-pre"><b>Operations / Visitors</b>
 
 | Name | Date | Host | NDA on file |
@@ -447,6 +2175,90 @@ footer a { color: var(--muted); }
 | Stephanie Wang | Helion | SQL |</pre>
       </div>
     </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~115 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+
+| Name | Date | Host | NDA on file |
+| --- | --- | --- | --- |
+| Q. Nguyen | 2026-04-29 | ops-1 | false |
+| L. Chen | 2026-04-30 | ops-1 | true |
+| M. Patel | 2026-04-30 | ops-2 | false |
+
+<b>CRM / Contacts</b>
+
+| Na…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~115 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+
+| Name | Date | Host | NDA on file |
+| --- | --- | --- | --- |
+| Q. Nguyen | 2026-04-29 | ops-1 | false |
+| L. Chen | 2026-04-30 | ops-1 | true |
+| M. Patel | 2026-04-30 | ops-2 | false |
+
+<b>CRM / Contacts</b>
+
+| Na…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~115 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+
+| Name | Date | Host | NDA on file |
+| --- | --- | --- | --- |
+| Q. Nguyen | 2026-04-29 | ops-1 | false |
+| L. Chen | 2026-04-30 | ops-1 | true |
+| M. Patel | 2026-04-30 | ops-2 | false |
+
+<b>CRM / Contacts</b>
+
+| Na…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~115 tokens</span>
+    </div>
+    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+
+| Name | Date | Host | NDA on file |
+| --- | --- | --- | --- |
+| Q. Nguyen | 2026-04-29 | ops-1 | false |
+| L. Chen | 2026-04-30 | ops-1 | true |
+| M. Patel | 2026-04-30 | ops-2 | false |
+
+<b>CRM / Contacts</b>
+
+| Na…</div>
+  </div>
+
+      </div>
+    </div>
   </section>
 
   <section class="card" id="jira">
@@ -457,13 +2269,14 @@ footer a { color: var(--muted); }
           <span class="pill">jira/site</span>
           ·
           view: <span class="mono">JiraSprintBoard</span>
+          · extends: <span class="mono ext-pill">task/list</span>
         </div>
         <div class="card-desc">Jira — projects, issues, sprints.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">2/7</div>
@@ -484,7 +2297,7 @@ footer a { color: var(--muted); }
     <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~157 tokens</span></div>
         <pre class="md-pre"><b>Sprint board</b>
 
 | Key | Summary | Status | Assignee |
@@ -498,6 +2311,142 @@ footer a { color: var(--muted); }
 | PLAT-447 | Docs: typed asset authoring guide | To Do | alice |</pre>
       </div>
     </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~157 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">2/7</div>
+      <div class="ws-metric-label">Tickets done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">8/28</div>
+      <div class="ws-metric-label">Story points done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+
+| Key | Summary | Status | Assignee |
+| --- | --- | --- | --- |
+| PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
+| PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
+| PLAT-443 | Au…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~157 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">2/7</div>
+      <div class="ws-metric-label">Tickets done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">8/28</div>
+      <div class="ws-metric-label">Story points done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+
+| Key | Summary | Status | Assignee |
+| --- | --- | --- | --- |
+| PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
+| PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
+| PLAT-443 | Au…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~157 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">2/7</div>
+      <div class="ws-metric-label">Tickets done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">8/28</div>
+      <div class="ws-metric-label">Story points done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+
+| Key | Summary | Status | Assignee |
+| --- | --- | --- | --- |
+| PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
+| PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
+| PLAT-443 | Au…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~157 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">2/7</div>
+      <div class="ws-metric-label">Tickets done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">8/28</div>
+      <div class="ws-metric-label">Story points done</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Blocked</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+
+| Key | Summary | Status | Assignee |
+| --- | --- | --- | --- |
+| PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
+| PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
+| PLAT-443 | Au…</div>
+  </div>
+
+      </div>
+    </div>
   </section>
 
   <section class="card" id="notion">
@@ -508,13 +2457,14 @@ footer a { color: var(--muted); }
           <span class="pill">notion/workspace</span>
           ·
           view: <span class="mono">NotionRecentPages</span>
+          · extends: <span class="mono ext-pill">document/collection</span>
         </div>
         <div class="card-desc">Notion — pages, databases, blocks.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-doc">
       <div class="ws-doc-title">Q2 launch plan</div>
       
@@ -554,7 +2504,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       </li></ul></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~43 tokens</span></div>
         <pre class="md-pre"><b>Notion pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30
@@ -562,6 +2512,218 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 • <b>Customer feedback · April</b> — 2026-04-28
 • <b>Weekly metrics</b> — 2026-04-26
 • <b>Hiring · Senior Eng</b> — 2026-04-22</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~43 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      
+      <div class="ws-doc-meta">last edited 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div><div class="ws-list"><div class="ws-title">Other pages</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">On-call runbook</span>
+          <span class="ws-badge">ops</span>
+        </div>
+        <div class="ws-li-sub">2026-04-29</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Customer feedback · April</span>
+          <span class="ws-badge">research</span>
+        </div>
+        <div class="ws-li-sub">2026-04-28</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Weekly metrics</span>
+          <span class="ws-badge">metrics</span>
+        </div>
+        <div class="ws-li-sub">2026-04-26</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Hiring · Senior Eng</span>
+          <span class="ws-badge">hr</span>
+        </div>
+        <div class="ws-li-sub">2026-04-22</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+
+• <b>Q2 launch plan</b> — 2026-04-30
+• <b>On-call runbook</b> — 2026-04-29
+• <b>Customer feedback · April</b> — 2026-04-28
+• <b>Weekly metrics</b> — 2026-04-26
+• <b>Hiring · Senior Eng</b> — 2026-04-22</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~43 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      
+      <div class="ws-doc-meta">last edited 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div><div class="ws-list"><div class="ws-title">Other pages</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">On-call runbook</span>
+          <span class="ws-badge">ops</span>
+        </div>
+        <div class="ws-li-sub">2026-04-29</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Customer feedback · April</span>
+          <span class="ws-badge">research</span>
+        </div>
+        <div class="ws-li-sub">2026-04-28</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Weekly metrics</span>
+          <span class="ws-badge">metrics</span>
+        </div>
+        <div class="ws-li-sub">2026-04-26</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Hiring · Senior Eng</span>
+          <span class="ws-badge">hr</span>
+        </div>
+        <div class="ws-li-sub">2026-04-22</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+
+• <b>Q2 launch plan</b> — 2026-04-30
+• <b>On-call runbook</b> — 2026-04-29
+• <b>Customer feedback · April</b> — 2026-04-28
+• <b>Weekly metrics</b> — 2026-04-26
+• <b>Hiring · Senior Eng</b> — 2026-04-22</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~43 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      
+      <div class="ws-doc-meta">last edited 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div><div class="ws-list"><div class="ws-title">Other pages</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">On-call runbook</span>
+          <span class="ws-badge">ops</span>
+        </div>
+        <div class="ws-li-sub">2026-04-29</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Customer feedback · April</span>
+          <span class="ws-badge">research</span>
+        </div>
+        <div class="ws-li-sub">2026-04-28</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Weekly metrics</span>
+          <span class="ws-badge">metrics</span>
+        </div>
+        <div class="ws-li-sub">2026-04-26</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Hiring · Senior Eng</span>
+          <span class="ws-badge">hr</span>
+        </div>
+        <div class="ws-li-sub">2026-04-22</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+
+• <b>Q2 launch plan</b> — 2026-04-30
+• <b>On-call runbook</b> — 2026-04-29
+• <b>Customer feedback · April</b> — 2026-04-28
+• <b>Weekly metrics</b> — 2026-04-26
+• <b>Hiring · Senior Eng</b> — 2026-04-22</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~43 tokens</span>
+    </div>
+    <div class="ws-doc">
+      <div class="ws-doc-title">Q2 launch plan</div>
+      
+      <div class="ws-doc-meta">last edited 2026-04-30</div>
+      <div class="ws-doc-body">Overview
+
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
+      <div class="ws-doc-stats">39 words · ~1 min read</div>
+    </div><div class="ws-list"><div class="ws-title">Other pages</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">On-call runbook</span>
+          <span class="ws-badge">ops</span>
+        </div>
+        <div class="ws-li-sub">2026-04-29</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Customer feedback · April</span>
+          <span class="ws-badge">research</span>
+        </div>
+        <div class="ws-li-sub">2026-04-28</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Weekly metrics</span>
+          <span class="ws-badge">metrics</span>
+        </div>
+        <div class="ws-li-sub">2026-04-26</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">Hiring · Senior Eng</span>
+          <span class="ws-badge">hr</span>
+        </div>
+        <div class="ws-li-sub">2026-04-22</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+
+• <b>Q2 launch plan</b> — 2026-04-30
+• <b>On-call runbook</b> — 2026-04-29
+• <b>Customer feedback · April</b> — 2026-04-28
+• <b>Weekly metrics</b> — 2026-04-26
+• <b>Hiring · Senior Eng</b> — 2026-04-22</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -574,13 +2736,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           <span class="pill">stripe/account</span>
           ·
           view: <span class="mono">StripePayments</span>
+          
         </div>
         <div class="card-desc">Stripe — charges, payouts, customers.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">$5,280.00</div>
@@ -601,8 +2764,120 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
     <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~11 tokens</span></div>
         <pre class="md-pre"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~11 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$5,280.00</div>
+      <div class="ws-metric-label">Charges (succeeded)</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">20.0%</div>
+      <div class="ws-metric-label">Failure rate</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Payouts pending</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~11 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$5,280.00</div>
+      <div class="ws-metric-label">Charges (succeeded)</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">20.0%</div>
+      <div class="ws-metric-label">Failure rate</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Payouts pending</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~11 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$5,280.00</div>
+      <div class="ws-metric-label">Charges (succeeded)</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">20.0%</div>
+      <div class="ws-metric-label">Failure rate</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Payouts pending</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~11 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">$5,280.00</div>
+      <div class="ws-metric-label">Charges (succeeded)</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">20.0%</div>
+      <div class="ws-metric-label">Failure rate</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Payouts pending</div>
+      
+    </div>
+    </div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
+    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+  </div>
+
       </div>
     </div>
   </section>
@@ -615,13 +2890,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           <span class="pill">github/repository</span>
           ·
           view: <span class="mono">GitHubRepo</span>
+          · extends: <span class="mono ext-pill">task/list</span>
         </div>
         <div class="card-desc">GitHub — repo, PRs, issues, CI.</div>
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
+        <div class="col-label">HTML · medium</div>
         <div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">4</div>
@@ -670,7 +2946,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       </li></ul></div>
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~53 tokens</span></div>
         <pre class="md-pre"><b>daslabhq/scene-otel · 4 open PRs</b>
 
 • <b>#12 Add scene.intent + amber rendering</b> — by alice
@@ -679,11 +2955,255 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 • <b>#9 AutomationBench instrumentation</b> — by alice</pre>
       </div>
     </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        
+  <div class="size-cell icon">
+    <div class="size-label">
+      <span>icon</span>
+      <span class="size-tokens">~53 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">4</div>
+      <div class="ws-metric-label">Open PRs</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">2</div>
+      <div class="ws-metric-label">Awaiting review</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Failing CI</div>
+      
+    </div>
+    </div>
+    <div class="ws-list"><div class="ws-title">daslabhq/scene-otel · open PRs</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#12 · Add scene.intent + amber rendering</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · review: bob</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#11 · Worldstate v0.1 scaffold</span>
+          <span class="ws-badge">CI …</span>
+        </div>
+        <div class="ws-li-sub">carol</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#10 · Fix scrubber slider on Safari</span>
+          <span class="ws-badge">CI ✗</span>
+        </div>
+        <div class="ws-li-sub">dave · review: alice</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#9 · AutomationBench instrumentation</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · draft</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+
+• <b>#12 Add scene.intent + amber rendering</b> — by alice
+• <b>#11 Worldstate v0.1 scaffold</b> — by carol
+• <b>#10 Fix scrubber slider on Safari</b> — by dave
+• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+  </div>
+
+  <div class="size-cell small">
+    <div class="size-label">
+      <span>small</span>
+      <span class="size-tokens">~53 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">4</div>
+      <div class="ws-metric-label">Open PRs</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">2</div>
+      <div class="ws-metric-label">Awaiting review</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Failing CI</div>
+      
+    </div>
+    </div>
+    <div class="ws-list"><div class="ws-title">daslabhq/scene-otel · open PRs</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#12 · Add scene.intent + amber rendering</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · review: bob</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#11 · Worldstate v0.1 scaffold</span>
+          <span class="ws-badge">CI …</span>
+        </div>
+        <div class="ws-li-sub">carol</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#10 · Fix scrubber slider on Safari</span>
+          <span class="ws-badge">CI ✗</span>
+        </div>
+        <div class="ws-li-sub">dave · review: alice</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#9 · AutomationBench instrumentation</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · draft</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+
+• <b>#12 Add scene.intent + amber rendering</b> — by alice
+• <b>#11 Worldstate v0.1 scaffold</b> — by carol
+• <b>#10 Fix scrubber slider on Safari</b> — by dave
+• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+  </div>
+
+  <div class="size-cell medium">
+    <div class="size-label">
+      <span>medium</span>
+      <span class="size-tokens">~53 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">4</div>
+      <div class="ws-metric-label">Open PRs</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">2</div>
+      <div class="ws-metric-label">Awaiting review</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Failing CI</div>
+      
+    </div>
+    </div>
+    <div class="ws-list"><div class="ws-title">daslabhq/scene-otel · open PRs</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#12 · Add scene.intent + amber rendering</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · review: bob</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#11 · Worldstate v0.1 scaffold</span>
+          <span class="ws-badge">CI …</span>
+        </div>
+        <div class="ws-li-sub">carol</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#10 · Fix scrubber slider on Safari</span>
+          <span class="ws-badge">CI ✗</span>
+        </div>
+        <div class="ws-li-sub">dave · review: alice</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#9 · AutomationBench instrumentation</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · draft</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+
+• <b>#12 Add scene.intent + amber rendering</b> — by alice
+• <b>#11 Worldstate v0.1 scaffold</b> — by carol
+• <b>#10 Fix scrubber slider on Safari</b> — by dave
+• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+  </div>
+
+  <div class="size-cell large">
+    <div class="size-label">
+      <span>large</span>
+      <span class="size-tokens">~53 tokens</span>
+    </div>
+    <div class="ws-grid-3">
+      <div class="ws-metric">
+      <div class="ws-metric-value">4</div>
+      <div class="ws-metric-label">Open PRs</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">2</div>
+      <div class="ws-metric-label">Awaiting review</div>
+      
+    </div>
+      <div class="ws-metric">
+      <div class="ws-metric-value">1</div>
+      <div class="ws-metric-label">Failing CI</div>
+      
+    </div>
+    </div>
+    <div class="ws-list"><div class="ws-title">daslabhq/scene-otel · open PRs</div><ul><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#12 · Add scene.intent + amber rendering</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · review: bob</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#11 · Worldstate v0.1 scaffold</span>
+          <span class="ws-badge">CI …</span>
+        </div>
+        <div class="ws-li-sub">carol</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#10 · Fix scrubber slider on Safari</span>
+          <span class="ws-badge">CI ✗</span>
+        </div>
+        <div class="ws-li-sub">dave · review: alice</div>
+        
+      </li><li class="ws-li">
+        <div class="ws-li-row">
+          <span class="ws-li-title">#9 · AutomationBench instrumentation</span>
+          <span class="ws-badge">CI ✓</span>
+        </div>
+        <div class="ws-li-sub">alice · draft</div>
+        
+      </li></ul></div>
+    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+
+• <b>#12 Add scene.intent + amber rendering</b> — by alice
+• <b>#11 Worldstate v0.1 scaffold</b> — by carol
+• <b>#10 Fix scrubber slider on Safari</b> — by dave
+• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+  </div>
+
+      </div>
+    </div>
   </section>
 
   </main>
   <footer>
-    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · 10 assets shown
+    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · 6 canonical · 10 vendors
   </footer>
 </body>
 </html>

@@ -53,6 +53,7 @@ const RecentPagesView = defineView<NotionState>({
 
 export const Notion = defineAsset<NotionState>({
   type: "notion/workspace",
+  extends: ["document/collection"],
   description: "Notion — pages, databases, blocks.",
   schema: { type: "object", properties: { pages: { type: "array" } } },
   defaultView: RecentPagesView,

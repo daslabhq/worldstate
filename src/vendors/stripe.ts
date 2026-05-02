@@ -64,6 +64,7 @@ const PaymentsView = defineView<StripeState>({
 
 export const Stripe = defineAsset<StripeState>({
   type: "stripe/account",
+  // (no canonical type; vendor-specific shape)
   description: "Stripe — charges, payouts, customers.",
   schema: { type: "object" },
   defaultView: PaymentsView,

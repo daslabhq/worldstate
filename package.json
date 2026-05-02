@@ -7,11 +7,13 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".":           "./src/index.ts",
-    "./asset":     "./src/asset.ts",
-    "./view":      "./src/view.ts",
-    "./assets/*":  "./src/assets/*.ts",
-    "./views/*":   "./src/views/*.ts"
+    ".":            "./src/index.ts",
+    "./asset":      "./src/asset.ts",
+    "./view":       "./src/view.ts",
+    "./types":      "./src/types/index.ts",
+    "./types/*":    "./src/types/*.ts",
+    "./vendors/*":  "./src/vendors/*.ts",
+    "./views/*":    "./src/views/*.ts"
   },
   "files": [
     "src",

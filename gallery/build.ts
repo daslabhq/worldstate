@@ -13,33 +13,61 @@ import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { assets } from "../src/index.js";
-import { escapeHtml } from "../src/view.js";
+import { vendors, canonicalTypes } from "../src/index.js";
+import { escapeHtml, type ViewSize } from "../src/view.js";
+import type { AssetDef } from "../src/asset.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT  = join(HERE, "index.html");
+
+const SIZES: ViewSize[] = ["icon", "small", "medium", "large", "xlarge"];
+
+interface SizeRender {
+  size:     ViewSize;
+  html:     string;
+  markdown: string;
+  tokens:   number;   // rough: words / 0.75
+}
 
 interface Card {
   name:     string;
   type:     string;
   desc:     string;
   viewName: string;
-  html:     string;
-  markdown: string;
+  extends:  string[];
+  iconHtml: string;     // for the home-screen mosaic at top
+  renders:  SizeRender[];
 }
 
-const cards: Card[] = [];
-for (const [name, asset] of Object.entries(assets)) {
-  const state = asset.mockState!();
-  cards.push({
-    name,
-    type:     asset.type,
-    desc:     asset.description ?? "",
-    viewName: asset.defaultView.name,
-    html:     asset.defaultView.toHTML(state),
-    markdown: asset.defaultView.toMarkdown(state),
-  });
+function approxTokens(s: string): number {
+  return Math.max(1, Math.round(s.split(/\s+/).filter(Boolean).length / 0.75));
 }
+
+function buildCards(group: Record<string, AssetDef<any>>): Card[] {
+  const out: Card[] = [];
+  for (const [name, asset] of Object.entries(group)) {
+    const state = asset.mockState!();
+    const renders: SizeRender[] = SIZES.map(size => {
+      const html     = asset.defaultView.toHTML(state, { size });
+      const markdown = asset.defaultView.toMarkdown(state, { size });
+      return { size, html, markdown, tokens: approxTokens(markdown) };
+    });
+    const icon = renders.find(r => r.size === "icon")!;
+    out.push({
+      name,
+      type:     asset.type,
+      desc:     asset.description ?? "",
+      viewName: asset.defaultView.name,
+      extends:  asset.extends ?? [],
+      iconHtml: icon.html,
+      renders,
+    });
+  }
+  return out;
+}
+
+const canonicalCards = buildCards(canonicalTypes);
+const vendorCards    = buildCards(vendors);
 
 const css = `
 :root {
@@ -62,9 +90,48 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .intro h2 { margin: 0 0 8px; font-size: 18px; }
 .intro p { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .intro code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
 .toc a { padding: 4px 10px; background: var(--bg); border-radius: 999px; font-size: 12px; text-decoration: none; color: var(--fg); border: 1px solid var(--border); }
 .toc a:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.toc-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-left: 4px; margin-right: 4px; }
+.toc-section:first-child { margin-left: 0; }
+.section-h { margin-top: 36px; margin-bottom: 4px; font-size: 20px; }
+.section-p { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+.ext-pill { background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ----- iOS home-screen mosaic ----- */
+.mosaic { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 24px; padding: 28px; margin-bottom: 32px; }
+.mosaic-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.mosaic-sub { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px; }
+.mosaic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+@media (max-width: 800px) { .mosaic-grid { grid-template-columns: repeat(3, 1fr); } }
+.mosaic-tile { background: rgba(255,255,255,0.95); border-radius: 16px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+/* ----- App icon (size=icon) ----- */
+.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; position: relative; }
+.ws-app-emoji { font-size: 36px; }
+.ws-app-name { font-size: 11px; color: var(--muted); font-weight: 500; }
+.ws-app-badge { position: absolute; top: -2px; right: -2px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--red); color: white; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+/* ----- Small widget (2x2) ----- */
+.ws-small { padding: 14px; height: 100%; display: flex; flex-direction: column; }
+.ws-small-head { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+.ws-small-num { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.ws-small-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
+.ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ----- Size strip (per-asset all-sizes display) ----- */
+.size-strip { display: grid; grid-template-columns: 100px 158px 240px 1fr; gap: 16px; margin-top: 16px; align-items: stretch; }
+@media (max-width: 1100px) { .size-strip { grid-template-columns: 1fr; } }
+.size-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow: hidden; }
+.size-cell.icon { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.size-cell.small { aspect-ratio: 1; }
+.size-cell.medium { aspect-ratio: 2/1; min-height: 130px; }
+.size-cell.large { min-height: 240px; }
+.size-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.size-tokens { color: var(--accent); font-weight: 500; }
+.md-mini { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; max-height: 100px; overflow: hidden; color: var(--fg); }
 .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
 .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .card-name { font-size: 18px; font-weight: 600; }
@@ -159,7 +226,20 @@ const mdSyntax = (md: string) =>
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/^- (.+)$/gm, '• $1');
 
-const cardHtml = (c: Card) => `
+const sizeCell = (r: SizeRender) => `
+  <div class="size-cell ${r.size}">
+    <div class="size-label">
+      <span>${r.size}</span>
+      <span class="size-tokens">~${r.tokens} tokens</span>
+    </div>
+    ${r.html}
+    <div class="md-mini" style="margin-top:8px">${mdSyntax(r.markdown.slice(0, 240))}${r.markdown.length > 240 ? "…" : ""}</div>
+  </div>
+`;
+
+const cardHtml = (c: Card) => {
+  const medium = c.renders.find(r => r.size === "medium")!;
+  return `
   <section class="card" id="${c.name.toLowerCase()}">
     <div class="card-head">
       <div>
@@ -168,22 +248,32 @@ const cardHtml = (c: Card) => `
           <span class="pill">${escapeHtml(c.type)}</span>
           ·
           view: <span class="mono">${escapeHtml(c.viewName)}</span>
+          ${c.extends.length ? `· extends: ${c.extends.map(e => `<span class="mono ext-pill">${escapeHtml(e)}</span>`).join(" ")}` : ""}
         </div>
         ${c.desc ? `<div class="card-desc">${escapeHtml(c.desc)}</div>` : ""}
       </div>
     </div>
     <div class="split">
       <div class="col">
-        <div class="col-label">HTML — for humans, dashboards, scrubbers</div>
-        ${c.html}
+        <div class="col-label">HTML · medium</div>
+        ${medium.html}
       </div>
       <div class="col">
-        <div class="col-label">Markdown — for LLM context (token-efficient)</div>
-        <pre class="md-pre">${mdSyntax(c.markdown)}</pre>
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~${medium.tokens} tokens</span></div>
+        <pre class="md-pre">${mdSyntax(medium.markdown)}</pre>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="size-strip">
+        ${c.renders.filter(r => r.size !== "xlarge").map(sizeCell).join("")}
       </div>
     </div>
   </section>
 `;
+};
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -204,22 +294,41 @@ const html = `<!DOCTYPE html>
     </div>
   </header>
   <main>
-    <div class="intro">
-      <h2>What you're looking at</h2>
-      <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders the same state to <b>HTML</b> (left — the version humans see) and <b>Markdown</b> (right — the version an LLM sees in its context window).</p>
-      <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping the raw JSON, while preserving the structure agents need to reason about.</p>
-      <div class="toc">
-        ${cards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
+    <div class="mosaic">
+      <div class="mosaic-title">An agent home screen for canonical types</div>
+      <div class="mosaic-sub">Each tile is the <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;color:#fff">icon</code> rendering of one asset's defaultView — exactly what an iPhone home-screen widget would look like at 1×1 size. Click an icon to jump to its full size strip.</div>
+      <div class="mosaic-grid">
+        ${canonicalCards.map(c => `<a class="mosaic-tile" href="#${c.name.toLowerCase()}" style="text-decoration:none">${c.iconHtml}</a>`).join("")}
       </div>
     </div>
-    ${cards.map(cardHtml).join("")}
+
+    <div class="intro">
+      <h2>What you're looking at</h2>
+      <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders state at <b>five sizes</b> (icon · small · medium · large · xlarge — modeled on Apple WidgetKit + Daslab's <code>WidgetSize</code>) and <b>three formats</b> (HTML · Markdown · Text).</p>
+      <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping raw JSON. The icon version is ~95% cheaper.</p>
+      <p><b>Two layers:</b> <i>Canonical types</i> (Email, Message, Contact, …) are abstract primitives anyone can implement. <i>Vendor implementations</i> (Gmail, Slack, …) declare which canonical they extend.</p>
+      <div class="toc">
+        <span class="toc-section">Canonical:</span>
+        ${canonicalCards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
+        <span class="toc-section">Vendors:</span>
+        ${vendorCards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
+      </div>
+    </div>
+
+    <h2 class="section-h">Canonical types</h2>
+    <p class="section-p">Abstract primitives. Use them directly, or as targets for vendor extensions.</p>
+    ${canonicalCards.map(cardHtml).join("")}
+
+    <h2 class="section-h">Vendor implementations</h2>
+    <p class="section-p">Vendor-specific shapes that extend (where applicable) one or more canonical types.</p>
+    ${vendorCards.map(cardHtml).join("")}
   </main>
   <footer>
-    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${cards.length} assets shown
+    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${canonicalCards.length} canonical · ${vendorCards.length} vendors
   </footer>
 </body>
 </html>
 `;
 
 writeFileSync(OUT, html);
-console.log(`✓ wrote gallery → ${OUT.replace(process.cwd(), "")}  (${cards.length} assets, ${html.length.toLocaleString()} bytes)`);
+console.log(`✓ wrote gallery → ${OUT.replace(process.cwd(), "")}  (${canonicalCards.length} canonical + ${vendorCards.length} vendors, ${html.length.toLocaleString()} bytes)`);

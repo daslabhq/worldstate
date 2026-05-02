@@ -51,6 +51,7 @@ const RecordsView = defineView<AirtableState>({
 
 export const Airtable = defineAsset<AirtableState>({
   type: "airtable/account",
+  extends: ["contact/list"],
   description: "Airtable — bases, tables, records.",
   schema: { type: "object", properties: { bases: { type: "array" } } },
   defaultView: RecordsView,

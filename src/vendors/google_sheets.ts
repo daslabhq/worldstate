@@ -58,6 +58,7 @@ const OverviewView = defineView<SheetsState>({
 
 export const GoogleSheets = defineAsset<SheetsState>({
   type: "google_sheets/account",
+  // (no canonical type; vendor-specific shape)
   description: "Google Sheets — spreadsheets, worksheets, rows.",
   schema: {
     type: "object",

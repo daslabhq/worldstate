@@ -62,6 +62,7 @@ const RepoView = defineView<GitHubState>({
 
 export const GitHub = defineAsset<GitHubState>({
   type: "github/repository",
+  extends: ["task/list"],
   description: "GitHub — repo, PRs, issues, CI.",
   schema: { type: "object" },
   defaultView: RepoView,

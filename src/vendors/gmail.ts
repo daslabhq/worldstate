@@ -87,6 +87,7 @@ const DraftsView = defineView<GmailState>({
 
 export const Gmail = defineAsset<GmailState>({
   type: "gmail/account",
+  extends: ["email/mailbox"],
   description: "A Gmail mailbox — inbox, drafts, threads, labels.",
   schema: {
     type: "object",

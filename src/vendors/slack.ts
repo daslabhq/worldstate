@@ -58,6 +58,7 @@ const ActivityView = defineView<SlackState>({
 
 export const Slack = defineAsset<SlackState>({
   type: "slack/workspace",
+  extends: ["message/channels"],
   description: "Slack workspace — channels, messages, DMs, threads.",
   schema: {
     type: "object",

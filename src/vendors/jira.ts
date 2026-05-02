@@ -71,6 +71,7 @@ const SprintBoardView = defineView<JiraState>({
 
 export const Jira = defineAsset<JiraState>({
   type: "jira/site",
+  extends: ["task/list"],
   description: "Jira — projects, issues, sprints.",
   schema: {
     type: "object",

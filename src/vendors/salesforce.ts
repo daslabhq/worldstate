@@ -105,6 +105,7 @@ const ContactsView = defineView<SalesforceState>({
 
 export const Salesforce = defineAsset<SalesforceState>({
   type: "salesforce/account",
+  extends: ["contact/list"],
   description: "Salesforce CRM — contacts, opportunities, cases, accounts.",
   schema: {
     type: "object",

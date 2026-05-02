@@ -48,6 +48,7 @@ const NextUpView = defineView<CalendarState>({
 
 export const GoogleCalendar = defineAsset<CalendarState>({
   type: "google_calendar/account",
+  extends: ["event/calendar"],
   description: "Google Calendar — events, attendees, locations.",
   schema: {
     type: "object",
