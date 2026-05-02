@@ -11,9 +11,9 @@ Typed asset shapes + visual + headless **views** for AI agents. Authors return *
 
 Ships with **6 canonical types** in core — abstract primitives any vendor can implement: **Email**, **Message**, **Contact**, **Event**, **Task**, **Document**. Plus a library of widget primitives (Table, Metric, List, KeyValue, Calendar, Status, Document, Image, Plan, Stack).
 
-Vendor implementations (Gmail, Slack, Salesforce, Google Sheets, Notion, Jira, etc.) live in sibling packages following the `scene-state-<vendor>` convention. They declare which canonical type they implement via `extends: ["email/mailbox"]` and tools that consume canonical types work uniformly across all vendors.
+Vendor implementations (Gmail, Slack, Salesforce, SAP S/4HANA, etc.) live in **benchmark-scoped repos** like [`scene-bench`](https://github.com/daslabhq/scene-bench), where they belong with the benchmarks they came from. Each benchmark gets a magnet URL on `daslab.dev` (e.g. `daslab.dev/labs/automationbench`, `daslab.dev/s4bench`) showing its tasks, vendor schemas, and a leaderboard — scrubbable and scored.
 
-> *v0.3 transitional state: vendor implementations are still bundled in core under `src/vendors/` and exported as `vendors`. They will move to sibling packages (`scene-state-google`, `scene-state-slack`, …) in v0.4. The canonical types are the stable contract; vendor extensions are progressive.*
+Vendor types declare `extends: ["email/mailbox"]` etc. — tools that consume canonical types work uniformly across all vendors that implement them.
 
 **[Live gallery →](https://daslabhq.github.io/scene-state/)**
 

@@ -4,7 +4,7 @@
  */
 
 import { test, expect, describe } from "bun:test";
-import { vendors, canonicalTypes, defineView, defineAsset, viewSizeGrid, type ViewSize } from "./index.js";
+import { canonicalTypes, defineView, defineAsset, viewSizeGrid, type ViewSize } from "./index.js";
 
 describe("view sizes", () => {
   const SIZES: ViewSize[] = ["icon", "small", "medium", "large", "xlarge"];
@@ -97,43 +97,14 @@ describe("canonical types", () => {
   });
 });
 
-describe("vendor → canonical extends declarations", () => {
-  test("vendors that should extend canonical types do", () => {
-    expect(vendors.Gmail.extends).toContain("email/mailbox");
-    expect(vendors.Slack.extends).toContain("message/channels");
-    expect(vendors.Salesforce.extends).toContain("contact/list");
-    expect(vendors.GoogleCalendar.extends).toContain("event/calendar");
-    expect(vendors.Jira.extends).toContain("task/list");
-    expect(vendors.Notion.extends).toContain("document/collection");
-  });
-
-  test("canonical-extending vendors satisfy their canonical's schema (loose)", () => {
-    // Every canonical's mock should be renderable by every vendor's view
-    // that extends it — vendors are supersets. This is a smoke check, not
-    // a full schema check; we verify rendering doesn't throw.
-    const canonicalEmailMock = canonicalTypes.Email.mockState!();
-    expect(() =>
-      canonicalTypes.Email.defaultView.toMarkdown(canonicalEmailMock)
-    ).not.toThrow();
-  });
-});
-
-describe("built-in vendors", () => {
-  for (const [name, asset] of Object.entries(vendors)) {
-    test(`${name}.defaultView renders mock state`, () => {
+describe("canonical-only smoke checks", () => {
+  test("every canonical mock renders without throwing", () => {
+    for (const [, asset] of Object.entries(canonicalTypes)) {
       const state = asset.mockState!();
-      const html = asset.defaultView.toHTML(state);
-      const md   = asset.defaultView.toMarkdown(state);
-      const txt  = asset.defaultView.toText!(state);
-      expect(html.length).toBeGreaterThan(0);
-      expect(md.length).toBeGreaterThan(0);
-      expect(txt.length).toBeGreaterThan(0);
-      // HTML should be tag-shaped
-      expect(html).toMatch(/<\w+/);
-      // Markdown shouldn't contain raw HTML
-      expect(md).not.toMatch(/<\w+ /);
-    });
-  }
+      expect(() => asset.defaultView.toHTML(state)).not.toThrow();
+      expect(() => asset.defaultView.toMarkdown(state)).not.toThrow();
+    }
+  });
 });
 
 describe("defineView", () => {

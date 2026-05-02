@@ -1,5 +1,5 @@
 /**
- * scene-state — typed asset shapes + visual + headless views for AI agents.
+ * scene-state — typed canonical asset shapes + multi-format views for AI agents.
  *
  * Authors return WidgetData JSON per size; the framework converts to:
  *   - JSON       (the canonical primitive — same shape Daslab iOS uses)
@@ -7,9 +7,10 @@
  *   - Markdown   for LLM context (token-efficient summaries)
  *   - Text       for terminal output and text-only models
  *
- * Two layers of types:
- *   - Canonical types (Email, Message, Contact, …)  — abstract primitives
- *   - Vendor implementations (Gmail, Slack, …)      — declare extends:
+ * scene-state core ships only canonical types — Email, Message, Contact,
+ * Event, Task, Document. Vendor implementations (Gmail, Slack, Salesforce, …)
+ * live in benchmark-scoped repos like scene-bench, where they belong with
+ * the benchmarks they came from.
  *
  * Pairs with scene-otel for emission. Daslab platform builds on it.
  */
@@ -37,7 +38,7 @@ export {
   type AssetDef,
 } from "./asset.js";
 
-// WidgetData — the canonical JSON shape that view authors return
+// WidgetData — the canonical JSON shape view authors return
 export type {
   WidgetData,
   WidgetColor,
@@ -58,35 +59,3 @@ export * as primitives from "./views/primitives.js";
 // Canonical types — abstract primitives
 export * from "./types/index.js";
 export { canonicalTypes } from "./types/index.js";
-
-// Vendor implementations — extend canonical types
-export { Gmail }          from "./vendors/gmail.js";
-export { Salesforce }     from "./vendors/salesforce.js";
-export { Slack }          from "./vendors/slack.js";
-export { GoogleSheets }   from "./vendors/google_sheets.js";
-export { GoogleCalendar } from "./vendors/google_calendar.js";
-export { Airtable }       from "./vendors/airtable.js";
-export { Jira }           from "./vendors/jira.js";
-export { Notion }         from "./vendors/notion.js";
-export { Stripe }         from "./vendors/stripe.js";
-export { GitHub }         from "./vendors/github.js";
-
-import { Gmail }          from "./vendors/gmail.js";
-import { Salesforce }     from "./vendors/salesforce.js";
-import { Slack }          from "./vendors/slack.js";
-import { GoogleSheets }   from "./vendors/google_sheets.js";
-import { GoogleCalendar } from "./vendors/google_calendar.js";
-import { Airtable }       from "./vendors/airtable.js";
-import { Jira }           from "./vendors/jira.js";
-import { Notion }         from "./vendors/notion.js";
-import { Stripe }         from "./vendors/stripe.js";
-import { GitHub }         from "./vendors/github.js";
-
-export const vendors = {
-  Gmail, Salesforce, Slack,
-  GoogleSheets, GoogleCalendar, Airtable,
-  Jira, Notion, Stripe, GitHub,
-} as const;
-
-/** @deprecated use `vendors` (kept for v0.1.x backward compat). */
-export const assets = vendors;

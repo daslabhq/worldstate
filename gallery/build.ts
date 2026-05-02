@@ -13,7 +13,7 @@ import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { vendors, canonicalTypes } from "../src/index.js";
+import { canonicalTypes } from "../src/index.js";
 import { escapeHtml, type ViewSize } from "../src/view.js";
 import type { AssetDef } from "../src/asset.js";
 
@@ -67,7 +67,6 @@ function buildCards(group: Record<string, AssetDef<any>>): Card[] {
 }
 
 const canonicalCards = buildCards(canonicalTypes);
-const vendorCards    = buildCards(vendors);
 
 const css = `
 :root {
@@ -442,25 +441,19 @@ const html = `<!DOCTYPE html>
       <h2>What you're looking at</h2>
       <p>Each card below is one <code>defineAsset()</code> declaration from the scene-state library. Every asset comes with a default <code>view</code> that renders state at <b>five sizes</b> (icon · small · medium · large · xlarge — modeled on Apple WidgetKit + Daslab's <code>WidgetSize</code>) and <b>three formats</b> (HTML · Markdown · Text).</p>
       <p>Same definition. Different consumers. The Markdown version is typically <b>3–5× cheaper in tokens</b> than dumping raw JSON. The icon version is ~95% cheaper.</p>
-      <p><b>Two layers:</b> <i>Canonical types</i> (Email, Message, Contact, …) are abstract primitives anyone can implement. <i>Vendor implementations</i> (Gmail, Slack, …) declare which canonical they extend.</p>
+      <p>Vendor implementations (Gmail, Slack, Salesforce, SAP S/4HANA, …) live in benchmark-scoped repos like <a href="https://github.com/daslabhq/scene-bench">scene-bench</a>. Each benchmark owns its vendor types, scrubbable + scored at <a href="https://daslab.dev">daslab.dev</a>.</p>
       <div class="toc">
         <span class="toc-section">Canonical:</span>
         ${canonicalCards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
-        <span class="toc-section">Vendors:</span>
-        ${vendorCards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
       </div>
     </div>
 
     <h2 class="section-h">Canonical types</h2>
-    <p class="section-p">Abstract primitives. Use them directly, or as targets for vendor extensions.</p>
+    <p class="section-p">Abstract primitives. Use directly, or as targets for vendor extensions in benchmark repos.</p>
     ${canonicalCards.map(cardHtml).join("")}
-
-    <h2 class="section-h">Vendor implementations</h2>
-    <p class="section-p">Vendor-specific shapes that extend (where applicable) one or more canonical types.</p>
-    ${vendorCards.map(cardHtml).join("")}
   </main>
   <footer>
-    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${canonicalCards.length} canonical · ${vendorCards.length} vendors
+    scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${canonicalCards.length} canonical types
   </footer>
   <script>
     // Format tabs — flip data-format on the strip below each tabs control
@@ -485,4 +478,4 @@ const html = `<!DOCTYPE html>
 `;
 
 writeFileSync(OUT, html);
-console.log(`✓ wrote gallery → ${OUT.replace(process.cwd(), "")}  (${canonicalCards.length} canonical + ${vendorCards.length} vendors, ${html.length.toLocaleString()} bytes)`);
+console.log(`✓ wrote gallery → ${OUT.replace(process.cwd(), "")}  (${canonicalCards.length} canonical types, ${html.length.toLocaleString()} bytes)`);
