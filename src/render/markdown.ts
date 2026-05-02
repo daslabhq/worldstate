@@ -55,7 +55,8 @@ function renderList(w: ListWidget): string {
   const lines = w.items.slice(0, 30).map(i => {
     const badge = i.badge ? ` \`${i.badge}\`` : "";
     const sub = i.subtitle ? ` — ${i.subtitle}` : "";
-    return `- **${i.title}**${badge}${sub}`;
+    const det = i.detail ? `\n  > ${truncate(i.detail, 140)}` : "";
+    return `- **${i.title}**${badge}${sub}${det}`;
   }).join("\n");
   const more = w.items.length > 30 ? `\n_… ${w.items.length - 30} more_` : "";
   return `${w.title ? `**${w.title}**\n\n` : ""}${lines}${more}`;

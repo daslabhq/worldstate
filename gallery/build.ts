@@ -184,21 +184,28 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 .size-strip {
-  display: grid;
-  /* Apple WidgetKit grid: icon=1×1 · small=2×2 · medium=4×2 · large=4×4 */
-  grid-template-columns: 110px 158px 329px 329px;
+  display: flex;
+  overflow-x: auto;
   gap: 22px;
   margin-top: 4px;
   align-items: start;
+  padding-bottom: 8px;
 }
-@media (max-width: 1100px) {
-  .size-strip { display: flex; overflow-x: auto; padding-bottom: 8px; }
-  .size-strip .size-cell { flex-shrink: 0; }
-  .size-strip .size-cell.icon { width: 110px; }
-  .size-strip .size-cell.small { width: 158px; }
-  .size-strip .size-cell.medium { width: 329px; }
-  .size-strip .size-cell.large { width: 329px; }
+.size-strip .size-cell-wrap { flex-shrink: 0; }
+.size-strip .size-cell-wrap.icon-w   { width: 110px; }
+.size-strip .size-cell-wrap.small-w  { width: 158px; }
+.size-strip .size-cell-wrap.medium-w { width: 329px; }
+.size-strip .size-cell-wrap.large-w  { width: 329px; }
+.size-strip .size-cell-wrap.xlarge-w { width: 658px; }
+.size-cell.xlarge { aspect-ratio: 2 / 1; } /* 8×4 */
+.size-cell-wrap { display: flex; flex-direction: column; gap: 6px; }
+.size-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); font-weight: 600;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 4px;
 }
+.size-tokens { color: var(--accent); font-weight: 500; }
 .size-cell {
   position: relative;
   background: var(--bg);
@@ -210,17 +217,8 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .size-cell.small { aspect-ratio: 1; }      /* 2×2 — square */
 .size-cell.medium { aspect-ratio: 2 / 1; } /* 4×2 — wide */
 .size-cell.large { aspect-ratio: 1; }      /* 4×4 — square */
-.size-label {
-  position: absolute; top: 8px; left: 10px; right: 10px;
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); font-weight: 600;
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  pointer-events: none;
-  z-index: 2;
-}
-.size-tokens { color: var(--accent); font-weight: 500; }
 .cell-html, .cell-md {
-  position: absolute; inset: 24px 12px 12px 12px;
+  position: absolute; inset: 12px;
   overflow: hidden;
 }
 .cell-html { display: flex; align-items: center; justify-content: center; }
@@ -358,13 +356,15 @@ const mdSyntax = (md: string) =>
     .replace(/^- (.+)$/gm, '• $1');
 
 const sizeCell = (r: SizeRender) => `
-  <div class="size-cell ${r.size}">
+  <div class="size-cell-wrap ${r.size}-w">
     <div class="size-label">
       <span>${r.size}</span>
       <span class="size-tokens">~${r.tokens} tokens</span>
     </div>
-    <div class="cell-html">${r.html}</div>
-    <div class="cell-md">${mdSyntax(r.markdown)}</div>
+    <div class="size-cell ${r.size}">
+      <div class="cell-html">${r.html}</div>
+      <div class="cell-md">${mdSyntax(r.markdown)}</div>
+    </div>
   </div>
 `;
 
@@ -403,7 +403,7 @@ const cardHtml = (c: Card) => {
         <button data-format="markdown">Markdown</button>
       </div>
       <div class="size-strip" data-format="html">
-        ${c.renders.filter(r => r.size !== "xlarge").map(sizeCell).join("")}
+        ${c.renders.map(sizeCell).join("")}
       </div>
     </div>
   </section>

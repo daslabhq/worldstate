@@ -79,10 +79,24 @@ const InboxView = defineView<EmailMailboxState>({
       return {
         type: "list",
         title: `Inbox · ${s.messages.length} messages${u ? ` · ${u} unread` : ""}`,
-        items: s.messages.slice(0, 20).map(m => ({
+        items: s.messages.slice(0, 8).map(m => ({
           title: m.subject || "(no subject)",
           subtitle: m.from,
-          detail: truncate(m.body ?? "", 140),
+          detail: truncate(m.body ?? "", 100),
+          badge: m.unread ? "unread" : undefined,
+        })),
+      };
+    },
+
+    xlarge: (s): WidgetData => {
+      const u = unreadCount(s);
+      return {
+        type: "list",
+        title: `Inbox · ${s.messages.length} messages${u ? ` · ${u} unread` : ""}`,
+        items: s.messages.map(m => ({
+          title: m.subject || "(no subject)",
+          subtitle: `${m.from} · ${m.date?.split("T")[0] ?? ""}`,
+          detail: m.body ?? "",
           badge: m.unread ? "unread" : undefined,
         })),
       };
@@ -101,10 +115,16 @@ export const Email = defineAsset<EmailMailboxState>({
   defaultView: InboxView,
   mockState: () => ({
     messages: [
-      { id: "m1", from: "alice@vendor.com",   to: ["me@x.com"], subject: "Invoice — overdue",        body: "Past due, please confirm.",            unread: true,  date: "2026-04-30T08:14:00Z" },
-      { id: "m2", from: "ceo@company.com",    to: ["me@x.com"], subject: "Quick question",            body: "Got a sec?",                            unread: true,  date: "2026-04-30T07:55:00Z" },
-      { id: "m3", from: "alerts@stripe.com",  to: ["me@x.com"], subject: "Payout completed: $1,200",  body: "Your payout has been deposited.",       unread: false, date: "2026-04-30T06:30:00Z" },
-      { id: "m4", from: "newsletter@nyt.com", to: ["me@x.com"], subject: "Morning briefing",          body: "Top stories…",                          unread: false, date: "2026-04-30T05:00:00Z" },
+      { id: "m1",  from: "alice@vendor.com",        to: ["me@x.com"], subject: "Invoice #4421 — overdue",      body: "Hi, just a heads up the invoice for $1,240 is past due. Please confirm payment status — would help me close out the books for the quarter.", unread: true,  date: "2026-04-30T08:14:00Z" },
+      { id: "m2",  from: "ceo@company.com",         to: ["me@x.com"], subject: "Quick question about Q2 plan", body: "Got a sec to chat about the launch timeline for the new product? Want to align on the scope before the partner call tomorrow.",            unread: true,  date: "2026-04-30T07:55:00Z" },
+      { id: "m3",  from: "alerts@stripe.com",       to: ["me@x.com"], subject: "Payout completed: $1,200",     body: "Your payout of $1,200 has been deposited. Reference id: po_1Q4Bxz.",                                                                       unread: true,  date: "2026-04-30T06:30:00Z" },
+      { id: "m4",  from: "jordan@bigco.example",    to: ["me@x.com"], subject: "Re: contract terms",            body: "Thanks for the redlines. Legal will respond by EOW. Two open questions on the SLA section.",                                              unread: true,  date: "2026-04-30T06:02:00Z" },
+      { id: "m5",  from: "newsletter@nyt.com",      to: ["me@x.com"], subject: "Morning briefing — Apr 30",     body: "Top stories: markets, climate, an interview with the new EU AI commissioner.",                                                            unread: false, date: "2026-04-30T05:00:00Z" },
+      { id: "m6",  from: "bob@team.com",            to: ["me@x.com"], subject: "Re: standup notes",             body: "Adding two things to the agenda: deploy retro + capacity planning for next sprint.",                                                       unread: false, date: "2026-04-29T22:01:00Z" },
+      { id: "m7",  from: "calendar-noreply@google", to: ["me@x.com"], subject: "Reminder: Sales review",         body: "Sales review tomorrow at 1 PM. Conf Room 3.",                                                                                              unread: false, date: "2026-04-29T18:30:00Z" },
+      { id: "m8",  from: "support@github.com",      to: ["me@x.com"], subject: "[scene-state] PR review",       body: "Alice approved your PR #44. Tests are green; ready to merge.",                                                                             unread: false, date: "2026-04-29T15:18:00Z" },
+      { id: "m9",  from: "people@company.com",      to: ["me@x.com"], subject: "Benefits enrollment open",       body: "Open enrollment runs through May 15. Pick your plan options on Workday.",                                                                  unread: false, date: "2026-04-29T11:02:00Z" },
+      { id: "m10", from: "linkedin@e.linkedin.com", to: ["me@x.com"], subject: "5 new jobs that match your search", body: "We found 5 new senior engineering roles in your area.",                                                                                  unread: false, date: "2026-04-28T20:45:00Z" },
     ],
   }),
 });
