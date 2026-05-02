@@ -94,57 +94,88 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--fg); }
 .ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
 
-/* ----- Size strip — fixed-width columns, no aspect-ratio fighting ----- */
+/* ----- Size strip — true iOS WidgetKit aspect ratios + format tabs ----- */
+.format-tabs {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.format-tabs button {
+  appearance: none; border: none; background: transparent;
+  padding: 5px 14px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.format-tabs button:hover { color: var(--fg); }
+.format-tabs button.active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
 .size-strip {
   display: grid;
-  grid-template-columns: 140px 200px 320px minmax(0, 1fr);
-  gap: 20px;
-  margin-top: 8px;
+  /* Apple WidgetKit grid: icon=1×1 · small=2×2 · medium=4×2 · large=4×4 */
+  grid-template-columns: 110px 158px 329px 329px;
+  gap: 22px;
+  margin-top: 4px;
+  align-items: start;
 }
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
   .size-strip { display: flex; overflow-x: auto; padding-bottom: 8px; }
   .size-strip .size-cell { flex-shrink: 0; }
-  .size-strip .size-cell.icon { width: 140px; }
-  .size-strip .size-cell.small { width: 200px; }
-  .size-strip .size-cell.medium { width: 320px; }
-  .size-strip .size-cell.large { width: 480px; }
+  .size-strip .size-cell.icon { width: 110px; }
+  .size-strip .size-cell.small { width: 158px; }
+  .size-strip .size-cell.medium { width: 329px; }
+  .size-strip .size-cell.large { width: 329px; }
 }
 .size-cell {
+  position: relative;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 14px;
   overflow: hidden;
-  min-width: 0;
-  display: flex; flex-direction: column;
 }
-.size-cell.icon { min-height: 200px; align-items: center; }
-.size-cell.icon .size-label { width: 100%; }
-.size-cell.icon .ws-app-icon { margin: auto 0; }
-.size-cell.small { min-height: 200px; }
-.size-cell.small .ws-small {
-  background: white; border: 1px solid var(--border); border-radius: 12px;
-  padding: 12px; flex: 1;
-}
-.size-cell.medium { min-height: 200px; }
-.size-cell.large { min-height: 280px; }
+.size-cell.icon  { aspect-ratio: 1; }      /* 1×1 — square */
+.size-cell.small { aspect-ratio: 1; }      /* 2×2 — square */
+.size-cell.medium { aspect-ratio: 2 / 1; } /* 4×2 — wide */
+.size-cell.large { aspect-ratio: 1; }      /* 4×4 — square */
 .size-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); font-weight: 600; margin-bottom: 10px;
+  position: absolute; top: 8px; left: 10px; right: 10px;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); font-weight: 600;
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  flex-shrink: 0;
+  pointer-events: none;
+  z-index: 2;
 }
 .size-tokens { color: var(--accent); font-weight: 500; }
-.size-cell .md-mini {
-  background: white; border: 1px solid var(--border); border-radius: 6px;
-  padding: 8px;
+.cell-html, .cell-md {
+  position: absolute; inset: 24px 12px 12px 12px;
+  overflow: hidden;
+}
+.cell-html { display: flex; align-items: center; justify-content: center; }
+.cell-html > * { width: 100%; max-height: 100%; overflow: hidden; }
+.size-cell.icon .cell-html > * { width: auto; }
+.cell-md {
+  display: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10.5px; line-height: 1.55;
   white-space: pre-wrap; word-break: break-word;
-  max-height: 90px; overflow: hidden;
-  color: var(--fg); margin-top: 8px;
-  flex-shrink: 0;
+  color: var(--fg);
+  overflow: auto;
 }
+.size-strip[data-format="markdown"] .cell-html { display: none; }
+.size-strip[data-format="markdown"] .cell-md   { display: block; }
 .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
 .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .card-name { font-size: 18px; font-weight: 600; }
@@ -407,14 +438,18 @@ footer a { color: var(--muted); }
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#0a84ff 0%,#0040dd 100%);color:#fff">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
@@ -422,8 +457,8 @@ footer a { color: var(--muted); }
       <div class="ws-app-badge">2</div>
     </div>
     <div class="ws-app-name">Email</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🔵 <b>Email</b> · 2</div>
+  </div></div>
+    <div class="cell-md">🔵 <b>Email</b> · 2</div>
   </div>
 
   <div class="size-cell small">
@@ -431,7 +466,7 @@ footer a { color: var(--muted); }
       <span>small</span>
       <span class="size-tokens">~15 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#0a84ff 0%,#0040dd 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -447,8 +482,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">alice@vendor.com</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox</b> · 2 unread
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Inbox</b> · 2 unread
 
 • <b>Invoice — overdue</b> <code>unread</code> — alice@vendor.com</div>
   </div>
@@ -458,7 +493,7 @@ footer a { color: var(--muted); }
       <span>medium</span>
       <span class="size-tokens">~40 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#0a84ff 0%,#0040dd 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -495,8 +530,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">newsletter@nyt.com</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox</b> · 4 · 2 unread
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Inbox</b> · 4 · 2 unread
 
 • <b>Invoice — overdue</b> <code>unread</code> — alice@vendor.com
 • <b>Quick question</b> <code>unread</code> — ceo@company.com
@@ -509,7 +544,7 @@ footer a { color: var(--muted); }
       <span>large</span>
       <span class="size-tokens">~41 tokens</span>
     </div>
-    <div class="ws-list ws-list--vertical"><div class="ws-title">Inbox · 4 messages · 2 unread</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list ws-list--vertical"><div class="ws-title">Inbox · 4 messages · 2 unread</div><ul><li class="ws-li">
       <div class="ws-li-row">
         <span class="ws-li-title">Invoice — overdue</span>
         <span class="ws-badge">unread</span>
@@ -537,8 +572,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">newsletter@nyt.com</div>
       <div class="ws-li-detail">Top stories…</div>
-    </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox · 4 messages · 2 unread</b>
+    </li></ul></div></div>
+    <div class="cell-md"><b>Inbox · 4 messages · 2 unread</b>
 
 • <b>Invoice — overdue</b> <code>unread</code> — alice@vendor.com
 • <b>Quick question</b> <code>unread</code> — ceo@company.com
@@ -603,14 +638,18 @@ footer a { color: var(--muted); }
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#34c759 0%,#1ca647 100%);color:#fff">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
@@ -618,8 +657,8 @@ footer a { color: var(--muted); }
       <div class="ws-app-badge">3</div>
     </div>
     <div class="ws-app-name">Chat</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🟢 <b>Chat</b> · 3</div>
+  </div></div>
+    <div class="cell-md">🟢 <b>Chat</b> · 3</div>
   </div>
 
   <div class="size-cell small">
@@ -627,7 +666,7 @@ footer a { color: var(--muted); }
       <span>small</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#34c759 0%,#1ca647 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -643,8 +682,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">2 messages</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>2 channels active</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>2 channels active</b>
 
 • <b>#engineering</b> — 2 messages</div>
   </div>
@@ -654,7 +693,7 @@ footer a { color: var(--muted); }
       <span>medium</span>
       <span class="size-tokens">~20 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#34c759 0%,#1ca647 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -677,8 +716,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">1 message</div>
       <div class="ws-li-detail">carol: Paused c-retain. CPA was high.</div>
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Recent activity</b> · 2 channels
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Recent activity</b> · 2 channels
 
 • <b>#engineering</b> — 2 messages
 • <b>#marketing</b> — 1 message</div>
@@ -689,7 +728,7 @@ footer a { color: var(--muted); }
       <span>large</span>
       <span class="size-tokens">~20 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#34c759 0%,#1ca647 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -712,8 +751,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">1 message</div>
       <div class="ws-li-detail">carol: Paused c-retain. CPA was high.</div>
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Recent activity</b> · 2 channels
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Recent activity</b> · 2 channels
 
 • <b>#engineering</b> — 2 messages
 • <b>#marketing</b> — 1 message</div>
@@ -765,14 +804,18 @@ footer a { color: var(--muted); }
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#af52de 0%,#7e3fb1 100%);color:#fff">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
@@ -780,8 +823,8 @@ footer a { color: var(--muted); }
       <div class="ws-app-badge">3</div>
     </div>
     <div class="ws-app-name">Contacts</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🟣 <b>Contacts</b> · 3</div>
+  </div></div>
+    <div class="cell-md">🟣 <b>Contacts</b> · 3</div>
   </div>
 
   <div class="size-cell small">
@@ -789,7 +832,7 @@ footer a { color: var(--muted); }
       <span>small</span>
       <span class="size-tokens">~12 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#af52de 0%,#7e3fb1 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -805,8 +848,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">Director of Ops</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>3 contacts</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>3 contacts</b>
 
 • <b>Jordan Lee</b> — Director of Ops</div>
   </div>
@@ -816,7 +859,7 @@ footer a { color: var(--muted); }
       <span>medium</span>
       <span class="size-tokens">~59 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#af52de 0%,#7e3fb1 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -825,8 +868,8 @@ footer a { color: var(--muted); }
   </div>
       <span class="ws-stack-title">Contacts</span>
       <span class="ws-stack-meta">3</span>
-    </div><div class="ws-stack-body"><div class="ws-table"><table><thead><tr><th>Name</th><th>Email</th><th>Title</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>Director of Ops</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>VP Marketing</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>CEO</td></tr></tbody></table></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Contacts</b> · 3
+    </div><div class="ws-stack-body"><div class="ws-table"><table><thead><tr><th>Name</th><th>Email</th><th>Title</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>Director of Ops</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>VP Marketing</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>CEO</td></tr></tbody></table></div></div></div></div>
+    <div class="cell-md"><b>Contacts</b> · 3
 
 | Name | Email | Title |
 | --- | --- | --- |
@@ -840,13 +883,14 @@ footer a { color: var(--muted); }
       <span>large</span>
       <span class="size-tokens">~84 tokens</span>
     </div>
-    <div class="ws-table"><div class="ws-title">3 contacts</div><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Title</th><th>Company</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>+1-555-0101</td><td>Director of Ops</td><td>Acme</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>+1-555-0182</td><td>VP Marketing</td><td>Brightwave</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>+1-555-0301</td><td>CEO</td><td>Meridian</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>3 contacts</b>
+    <div class="cell-html"><div class="ws-table"><div class="ws-title">3 contacts</div><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Title</th><th>Company</th></tr></thead><tbody><tr><td>Jordan Lee</td><td>jordan@acme.com</td><td>+1-555-0101</td><td>Director of Ops</td><td>Acme</td></tr><tr><td>Maria Santos</td><td>maria@brightwave.com</td><td>+1-555-0182</td><td>VP Marketing</td><td>Brightwave</td></tr><tr><td>Aiden Park</td><td>aiden@meridian.com</td><td>+1-555-0301</td><td>CEO</td><td>Meridian</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>3 contacts</b>
 
 | Name | Email | Phone | Title | Company |
 | --- | --- | --- | --- | --- |
 | Jordan Lee | jordan@acme.com | +1-555-0101 | Director of Ops | Acme |
-| Maria Santos | maria@brightwave.com | +1-555-0182 | VP Marketing | Brightwa…</div>
+| Maria Santos | maria@brightwave.com | +1-555-0182 | VP Marketing | Brightwave |
+| Aiden Park | aiden@meridian.com | +1-555-0301 | CEO | Meridian |</div>
   </div>
 
       </div>
@@ -922,14 +966,18 @@ footer a { color: var(--muted); }
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#ff3b30 0%,#d92520 100%);color:#fff">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
@@ -937,8 +985,8 @@ footer a { color: var(--muted); }
       <div class="ws-app-badge">4</div>
     </div>
     <div class="ws-app-name">Events</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🔴 <b>Events</b> · 4</div>
+  </div></div>
+    <div class="cell-md">🔴 <b>Events</b> · 4</div>
   </div>
 
   <div class="size-cell small">
@@ -946,7 +994,7 @@ footer a { color: var(--muted); }
       <span>small</span>
       <span class="size-tokens">~9 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ff3b30 0%,#d92520 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -962,8 +1010,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">all day</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Next up</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Next up</b>
 
 • <b>Off-site</b> — all day</div>
   </div>
@@ -973,7 +1021,7 @@ footer a { color: var(--muted); }
       <span>medium</span>
       <span class="size-tokens">~59 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ff3b30 0%,#d92520 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1010,8 +1058,8 @@ footer a { color: var(--muted); }
         
         
       </div>
-    </div></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b> · 4 events
+    </div></div></div></div></div>
+    <div class="cell-md"><b>Upcoming</b> · 4 events
 
 • <b>May 2 at 10:00 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM</b> — Sales review · Q2 · Conf Room 3
@@ -1024,7 +1072,7 @@ footer a { color: var(--muted); }
       <span>large</span>
       <span class="size-tokens">~55 tokens</span>
     </div>
-    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+    <div class="cell-html"><div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
       <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
       <div class="ws-cal-body">
         <div class="ws-cal-title">Daily standup</div>
@@ -1052,8 +1100,8 @@ footer a { color: var(--muted); }
         
         
       </div>
-    </div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+    </div></div></div>
+    <div class="cell-md"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM</b> — Sales review · Q2 · Conf Room 3
@@ -1122,14 +1170,18 @@ footer a { color: var(--muted); }
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#ff9500 0%,#e07700 100%);color:#fff">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
@@ -1137,8 +1189,8 @@ footer a { color: var(--muted); }
       <div class="ws-app-badge">2</div>
     </div>
     <div class="ws-app-name">Tasks</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🟠 <b>Tasks</b> · 2</div>
+  </div></div>
+    <div class="cell-md">🟠 <b>Tasks</b> · 2</div>
   </div>
 
   <div class="size-cell small">
@@ -1146,7 +1198,7 @@ footer a { color: var(--muted); }
       <span>small</span>
       <span class="size-tokens">~16 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ff9500 0%,#e07700 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1162,8 +1214,8 @@ footer a { color: var(--muted); }
       </div>
       <div class="ws-li-sub">⚠️ 1 blocked</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Tasks</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Tasks</b>
 
 • <b>1 in progress · 1 done</b> — ⚠️ 1 blocked</div>
   </div>
@@ -1173,7 +1225,7 @@ footer a { color: var(--muted); }
       <span>medium</span>
       <span class="size-tokens">~92 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ff9500 0%,#e07700 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1194,8 +1246,8 @@ footer a { color: var(--muted); }
     <div class="ws-metric-value">1</div>
     <div class="ws-metric-label">Blocked</div>
     
-  </div></div><div class="ws-table"><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td></tr></tbody></table></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+  </div></div><div class="ws-table"><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td></tr></tbody></table></div></div></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 <b>In progress</b>: 1 · <b>Done</b>: 1 · <b>Blocked</b>: 1
 
@@ -1203,7 +1255,8 @@ footer a { color: var(--muted); }
 | --- | --- | --- |
 | Wire up scene-bench AB adapter | done | alice |
 | Add canonical types to scene-state | in_progress | bob |
-| Land dasla…</div>
+| Land daslab.dev/labs page | todo | alice |
+| iOS scene viewer: image card aspect bug | blocked | carol |</div>
   </div>
 
   <div class="size-cell large">
@@ -1211,7 +1264,7 @@ footer a { color: var(--muted); }
       <span>large</span>
       <span class="size-tokens">~109 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ff9500 0%,#e07700 100%);color:#fff">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1232,8 +1285,8 @@ footer a { color: var(--muted); }
     <div class="ws-metric-value">1</div>
     <div class="ws-metric-label">Blocked</div>
     
-  </div></div><div class="ws-table"><div class="ws-title">Tasks</div><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th><th>Priority</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td><td>high</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td><td>high</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td><td>medium</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td><td>medium</td></tr></tbody></table></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+  </div></div><div class="ws-table"><div class="ws-title">Tasks</div><table><thead><tr><th>Title</th><th>Status</th><th>Assignee</th><th>Priority</th></tr></thead><tbody><tr><td>Wire up scene-bench AB adapter</td><td>done</td><td>alice</td><td>high</td></tr><tr><td>Add canonical types to scene-state</td><td>in_progress</td><td>bob</td><td>high</td></tr><tr><td>Land daslab.dev/labs page</td><td>todo</td><td>alice</td><td>medium</td></tr><tr><td>iOS scene viewer: image card aspect bug</td><td>blocked</td><td>carol</td><td>medium</td></tr></tbody></table></div></div></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 <b>In progress</b>: 1 · <b>Done</b>: 1 · <b>Blocked</b>: 1
 
@@ -1242,7 +1295,9 @@ footer a { color: var(--muted); }
 | Title | Status | Assignee | Priority |
 | --- | --- | --- | --- |
 | Wire up scene-bench AB adapter | done | alice | high |
-| Add canonical types to scene-state…</div>
+| Add canonical types to scene-state | in_progress | bob | high |
+| Land daslab.dev/labs page | todo | alice | medium |
+| iOS scene viewer: image card aspect bug | blocked | carol | medium |</div>
   </div>
 
       </div>
@@ -1301,14 +1356,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~5 tokens</span>
     </div>
-    <div class="ws-app-icon">
+    <div class="cell-html"><div class="ws-app-icon">
     <div class="ws-app-tile" style="background:linear-gradient(160deg,#ffcc00 0%,#e0a800 100%);color:#3a2a00">
       <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
@@ -1316,8 +1375,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="ws-app-badge">3</div>
     </div>
     <div class="ws-app-name">Docs</div>
-  </div>
-    <div class="md-mini" style="margin-top:8px">🟡 <b>Docs</b> · 3</div>
+  </div></div>
+    <div class="cell-md">🟡 <b>Docs</b> · 3</div>
   </div>
 
   <div class="size-cell small">
@@ -1325,7 +1384,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ffcc00 0%,#e0a800 100%);color:#3a2a00">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1341,8 +1400,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       </div>
       <div class="ws-li-sub">2026-04-30</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>3 pages</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>3 pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30</div>
   </div>
@@ -1352,7 +1411,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~63 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ffcc00 0%,#e0a800 100%);color:#3a2a00">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1369,8 +1428,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 
 We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
     <div class="ws-doc-stats">39 words · ~1 min</div>
-  </div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Featured page</b>
+  </div></div></div></div>
+    <div class="cell-md"><b>Featured page</b>
 
 <span class="h">### Q2 launch plan</span>
 
@@ -1378,7 +1437,7 @@ _ops team_
 
 Overview
 
-We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench i…</div>
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.</div>
   </div>
 
   <div class="size-cell large">
@@ -1386,7 +1445,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~81 tokens</span>
     </div>
-    <div class="ws-stack ws-stack--vertical">
+    <div class="cell-html"><div class="ws-stack ws-stack--vertical">
     <div class="ws-stack-head">
       <div class="ws-app-tile ws-app-tile--chip" style="background:linear-gradient(160deg,#ffcc00 0%,#e0a800 100%);color:#3a2a00">
     <div class="ws-app-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1417,8 +1476,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       </div>
       <div class="ws-li-sub">2026-04-28</div>
       
-    </li></ul></div></div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Featured page</b>
+    </li></ul></div></div></div></div>
+    <div class="cell-md"><b>Featured page</b>
 
 <span class="h">### Q2 launch plan</span>
 
@@ -1426,7 +1485,12 @@ _ops team_
 
 Overview
 
-We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench i…</div>
+We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers the core SDK; phase 2 (May 20) adds the visual scrubber; phase 3 (June 3) brings the AutomationBench integration to production with belief-vs-truth scoring.
+
+<b>More pages</b>
+
+• <b>On-call runbook</b> — 2026-04-29
+• <b>Customer feedback · April</b> — 2026-04-28</div>
   </div>
 
       </div>
@@ -1505,14 +1569,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~68 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">Invoice #4421 — overdue</span>
           <span class="ws-badge">unread</span>
@@ -1547,13 +1615,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">bob@team.com</div>
         <div class="ws-li-detail">Adding two things to the agenda.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Inbox (5 messages, 3 unread)</b>
 
 • <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
 • <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
 • <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
-• **Morning…</div>
+• <b>Morning briefing — Apr 30</b> — from newsletter@nyt.com
+• <b>Re: standup notes</b> — from bob@team.com</div>
   </div>
 
   <div class="size-cell small">
@@ -1561,7 +1630,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~68 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">Invoice #4421 — overdue</span>
           <span class="ws-badge">unread</span>
@@ -1596,13 +1665,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">bob@team.com</div>
         <div class="ws-li-detail">Adding two things to the agenda.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Inbox (5 messages, 3 unread)</b>
 
 • <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
 • <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
 • <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
-• **Morning…</div>
+• <b>Morning briefing — Apr 30</b> — from newsletter@nyt.com
+• <b>Re: standup notes</b> — from bob@team.com</div>
   </div>
 
   <div class="size-cell medium">
@@ -1610,7 +1680,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~68 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">Invoice #4421 — overdue</span>
           <span class="ws-badge">unread</span>
@@ -1645,13 +1715,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">bob@team.com</div>
         <div class="ws-li-detail">Adding two things to the agenda.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Inbox (5 messages, 3 unread)</b>
 
 • <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
 • <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
 • <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
-• **Morning…</div>
+• <b>Morning briefing — Apr 30</b> — from newsletter@nyt.com
+• <b>Re: standup notes</b> — from bob@team.com</div>
   </div>
 
   <div class="size-cell large">
@@ -1659,7 +1730,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~68 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Inbox · 5 messages · 3 unread</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">Invoice #4421 — overdue</span>
           <span class="ws-badge">unread</span>
@@ -1694,13 +1765,14 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">bob@team.com</div>
         <div class="ws-li-detail">Adding two things to the agenda.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Inbox (5 messages, 3 unread)</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Inbox (5 messages, 3 unread)</b>
 
 • <b>Invoice #4421 — overdue</b> — from alice@vendor.com · unread
 • <b>Quick question about Q2 plan</b> — from ceo@company.com · unread
 • <b>Payout completed: $1,200</b> — from alerts@stripe.com · unread
-• **Morning…</div>
+• <b>Morning briefing — Apr 30</b> — from newsletter@nyt.com
+• <b>Re: standup notes</b> — from bob@team.com</div>
   </div>
 
       </div>
@@ -1753,14 +1825,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~69 tokens</span>
     </div>
-    <div class="ws-grid-2">
+    <div class="cell-html"><div class="ws-grid-2">
       <div class="ws-metric">
       <div class="ws-metric-value">$128k</div>
       <div class="ws-metric-label">Open pipeline</div>
@@ -1772,15 +1848,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Salesforce Pipeline</b>
 
 | Name | Stage | Amount |
 | --- | --- | --- |
 | Meridian Corp Platform Deal | Closed Won | $245000 |
 | Acme Quarterly Renewal | Negotiation | $84000 |
 | Brightwave Expansion | Proposal | $32000 |
-| Helion Pilot | Di…</div>
+| Helion Pilot | Discovery | $12000 |</div>
   </div>
 
   <div class="size-cell small">
@@ -1788,7 +1864,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~69 tokens</span>
     </div>
-    <div class="ws-grid-2">
+    <div class="cell-html"><div class="ws-grid-2">
       <div class="ws-metric">
       <div class="ws-metric-value">$128k</div>
       <div class="ws-metric-label">Open pipeline</div>
@@ -1800,15 +1876,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Salesforce Pipeline</b>
 
 | Name | Stage | Amount |
 | --- | --- | --- |
 | Meridian Corp Platform Deal | Closed Won | $245000 |
 | Acme Quarterly Renewal | Negotiation | $84000 |
 | Brightwave Expansion | Proposal | $32000 |
-| Helion Pilot | Di…</div>
+| Helion Pilot | Discovery | $12000 |</div>
   </div>
 
   <div class="size-cell medium">
@@ -1816,7 +1892,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~69 tokens</span>
     </div>
-    <div class="ws-grid-2">
+    <div class="cell-html"><div class="ws-grid-2">
       <div class="ws-metric">
       <div class="ws-metric-value">$128k</div>
       <div class="ws-metric-label">Open pipeline</div>
@@ -1828,15 +1904,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Salesforce Pipeline</b>
 
 | Name | Stage | Amount |
 | --- | --- | --- |
 | Meridian Corp Platform Deal | Closed Won | $245000 |
 | Acme Quarterly Renewal | Negotiation | $84000 |
 | Brightwave Expansion | Proposal | $32000 |
-| Helion Pilot | Di…</div>
+| Helion Pilot | Discovery | $12000 |</div>
   </div>
 
   <div class="size-cell large">
@@ -1844,7 +1920,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~69 tokens</span>
     </div>
-    <div class="ws-grid-2">
+    <div class="cell-html"><div class="ws-grid-2">
       <div class="ws-metric">
       <div class="ws-metric-value">$128k</div>
       <div class="ws-metric-label">Open pipeline</div>
@@ -1856,15 +1932,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Salesforce Pipeline</b>
+    <div class="ws-table"><div class="ws-title">Opportunities</div><table><thead><tr><th>Name</th><th>Stage</th><th>Amount</th><th>Close</th></tr></thead><tbody><tr><td>Meridian Corp Platform Deal</td><td>Closed Won</td><td>$245,000</td><td>2026-04-28</td></tr><tr><td>Acme Quarterly Renewal</td><td>Negotiation</td><td>$84,000</td><td>2026-05-15</td></tr><tr><td>Brightwave Expansion</td><td>Proposal</td><td>$32,000</td><td>2026-06-01</td></tr><tr><td>Helion Pilot</td><td>Discovery</td><td>$12,000</td><td>2026-06-20</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Salesforce Pipeline</b>
 
 | Name | Stage | Amount |
 | --- | --- | --- |
 | Meridian Corp Platform Deal | Closed Won | $245000 |
 | Acme Quarterly Renewal | Negotiation | $84000 |
 | Brightwave Expansion | Proposal | $32000 |
-| Helion Pilot | Di…</div>
+| Helion Pilot | Discovery | $12000 |</div>
   </div>
 
       </div>
@@ -1929,14 +2005,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~81 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">#engineering</span>
           
@@ -1957,15 +2037,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">1 message</div>
         <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+      </li></ul></div></div>
+    <div class="cell-md"><b>#engineering</b> (3 messages)
 &gt; alice: Deploy is green; canary at 5%.
 &gt; bob: Looks good — bumping to 25%.
 &gt; carol: Hit a flake on test_billing — retrying.
 
 <b>#marketing-ops</b> (2 messages)
 &gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
-&gt;…</div>
+&gt; eve: Nice — let&#39;s revisit creative on Friday.
+
+<b>#support-incidents</b> (1 messages)
+&gt; frank: Page from PagerDuty — checking #db-replicas.</div>
   </div>
 
   <div class="size-cell small">
@@ -1973,7 +2056,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~81 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">#engineering</span>
           
@@ -1994,15 +2077,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">1 message</div>
         <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+      </li></ul></div></div>
+    <div class="cell-md"><b>#engineering</b> (3 messages)
 &gt; alice: Deploy is green; canary at 5%.
 &gt; bob: Looks good — bumping to 25%.
 &gt; carol: Hit a flake on test_billing — retrying.
 
 <b>#marketing-ops</b> (2 messages)
 &gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
-&gt;…</div>
+&gt; eve: Nice — let&#39;s revisit creative on Friday.
+
+<b>#support-incidents</b> (1 messages)
+&gt; frank: Page from PagerDuty — checking #db-replicas.</div>
   </div>
 
   <div class="size-cell medium">
@@ -2010,7 +2096,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~81 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">#engineering</span>
           
@@ -2031,15 +2117,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">1 message</div>
         <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+      </li></ul></div></div>
+    <div class="cell-md"><b>#engineering</b> (3 messages)
 &gt; alice: Deploy is green; canary at 5%.
 &gt; bob: Looks good — bumping to 25%.
 &gt; carol: Hit a flake on test_billing — retrying.
 
 <b>#marketing-ops</b> (2 messages)
 &gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
-&gt;…</div>
+&gt; eve: Nice — let&#39;s revisit creative on Friday.
+
+<b>#support-incidents</b> (1 messages)
+&gt; frank: Page from PagerDuty — checking #db-replicas.</div>
   </div>
 
   <div class="size-cell large">
@@ -2047,7 +2136,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~81 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Recent activity</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">#engineering</span>
           
@@ -2068,15 +2157,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">1 message</div>
         <div class="ws-li-detail">frank: Page from PagerDuty — checking #db-replicas.</div>
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>#engineering</b> (3 messages)
+      </li></ul></div></div>
+    <div class="cell-md"><b>#engineering</b> (3 messages)
 &gt; alice: Deploy is green; canary at 5%.
 &gt; bob: Looks good — bumping to 25%.
 &gt; carol: Hit a flake on test_billing — retrying.
 
 <b>#marketing-ops</b> (2 messages)
 &gt; dave: Paused c-retain. CPA was $203 vs $150 cap.
-&gt;…</div>
+&gt; eve: Nice — let&#39;s revisit creative on Friday.
+
+<b>#support-incidents</b> (1 messages)
+&gt; frank: Page from PagerDuty — checking #db-replicas.</div>
   </div>
 
       </div>
@@ -2127,14 +2219,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~23 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">FX Rates · Rates</span>
           
@@ -2148,8 +2244,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">3 rows</div>
         <div class="ws-li-detail">Columns: Account, Tier</div>
-      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sheets</b>
 
 • <b>FX Rates / Rates</b> — 3 rows
 • <b>Account Hierarchy / Tiers</b> — 3 rows</div>
@@ -2160,7 +2256,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~23 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">FX Rates · Rates</span>
           
@@ -2174,8 +2270,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">3 rows</div>
         <div class="ws-li-detail">Columns: Account, Tier</div>
-      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sheets</b>
 
 • <b>FX Rates / Rates</b> — 3 rows
 • <b>Account Hierarchy / Tiers</b> — 3 rows</div>
@@ -2186,7 +2282,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~23 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">FX Rates · Rates</span>
           
@@ -2200,8 +2296,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">3 rows</div>
         <div class="ws-li-detail">Columns: Account, Tier</div>
-      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sheets</b>
 
 • <b>FX Rates / Rates</b> — 3 rows
 • <b>Account Hierarchy / Tiers</b> — 3 rows</div>
@@ -2212,7 +2308,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~23 tokens</span>
     </div>
-    <div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
+    <div class="cell-html"><div class="ws-list"><div class="ws-title">Worksheets</div><ul><li class="ws-li">
         <div class="ws-li-row">
           <span class="ws-li-title">FX Rates · Rates</span>
           
@@ -2226,8 +2322,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">3 rows</div>
         <div class="ws-li-detail">Columns: Account, Tier</div>
-      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sheets</b>
+      </li></ul></div><div class="ws-table"><div class="ws-title">FX Rates · Rates</div><table><thead><tr><th>Currency</th><th>USDRate</th><th>Updated</th></tr></thead><tbody><tr><td>EUR</td><td>1.1</td><td>2026-04-10</td></tr><tr><td>GBP</td><td>1.27</td><td>2026-04-10</td></tr><tr><td>JPY</td><td>0.0067</td><td>2026-04-10</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sheets</b>
 
 • <b>FX Rates / Rates</b> — 3 rows
 • <b>Account Hierarchy / Tiers</b> — 3 rows</div>
@@ -2313,14 +2409,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~107 tokens</span>
     </div>
-    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+    <div class="cell-html"><div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
         <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
         <div class="ws-cal-body">
           <div class="ws-cal-title">Daily standup</div>
@@ -2362,13 +2462,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           
           
         </div>
-      </div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+      </div></div></div>
+    <div class="cell-md"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
 • <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
-• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunch w/ Maria · Tartine
+• <b>May 3 at 4:00 PM → 5:00 PM</b> — Design review
+• <b>May 4, 2026</b> — Off-site planning</div>
   </div>
 
   <div class="size-cell small">
@@ -2376,7 +2478,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~107 tokens</span>
     </div>
-    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+    <div class="cell-html"><div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
         <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
         <div class="ws-cal-body">
           <div class="ws-cal-title">Daily standup</div>
@@ -2418,13 +2520,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           
           
         </div>
-      </div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+      </div></div></div>
+    <div class="cell-md"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
 • <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
-• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunch w/ Maria · Tartine
+• <b>May 3 at 4:00 PM → 5:00 PM</b> — Design review
+• <b>May 4, 2026</b> — Off-site planning</div>
   </div>
 
   <div class="size-cell medium">
@@ -2432,7 +2536,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~107 tokens</span>
     </div>
-    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+    <div class="cell-html"><div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
         <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
         <div class="ws-cal-body">
           <div class="ws-cal-title">Daily standup</div>
@@ -2474,13 +2578,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           
           
         </div>
-      </div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+      </div></div></div>
+    <div class="cell-md"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
 • <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
-• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunch w/ Maria · Tartine
+• <b>May 3 at 4:00 PM → 5:00 PM</b> — Design review
+• <b>May 4, 2026</b> — Off-site planning</div>
   </div>
 
   <div class="size-cell large">
@@ -2488,7 +2594,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~107 tokens</span>
     </div>
-    <div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
+    <div class="cell-html"><div class="ws-cal"><div class="ws-title">Upcoming</div><div class="ws-cal-row">
         <div class="ws-cal-time">May 2 at 10:00 AM → 10:15 AM</div>
         <div class="ws-cal-body">
           <div class="ws-cal-title">Daily standup</div>
@@ -2530,13 +2636,15 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
           
           
         </div>
-      </div></div>
-    <div class="md-mini" style="margin-top:8px"><b>Upcoming</b>
+      </div></div></div>
+    <div class="cell-md"><b>Upcoming</b>
 
 • <b>May 2 at 10:00 AM → 10:15 AM</b> — Daily standup
 • <b>May 2 at 1:00 PM → 2:00 PM</b> — Sales review · Q2 · Conf Room 3
 • <b>May 2 at 3:30 PM → 4:00 PM</b> — Customer call: Brightwave · Zoom
-• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunc…</div>
+• <b>May 3 at 12:30 PM → 1:30 PM</b> — Lunch w/ Maria · Tartine
+• <b>May 3 at 4:00 PM → 5:00 PM</b> — Design review
+• <b>May 4, 2026</b> — Off-site planning</div>
   </div>
 
       </div>
@@ -2583,15 +2691,19 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~115 tokens</span>
     </div>
-    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+    <div class="cell-html"><div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Operations / Visitors</b>
 
 | Name | Date | Host | NDA on file |
 | --- | --- | --- | --- |
@@ -2601,7 +2713,10 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 
 <b>CRM / Contacts</b>
 
-| Na…</div>
+| Name | Company | Stage |
+| --- | --- | --- |
+| Andre Bechtold | Brightwave | MQL |
+| Stephanie Wang | Helion | SQL |</div>
   </div>
 
   <div class="size-cell small">
@@ -2609,8 +2724,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~115 tokens</span>
     </div>
-    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+    <div class="cell-html"><div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Operations / Visitors</b>
 
 | Name | Date | Host | NDA on file |
 | --- | --- | --- | --- |
@@ -2620,7 +2735,10 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 
 <b>CRM / Contacts</b>
 
-| Na…</div>
+| Name | Company | Stage |
+| --- | --- | --- |
+| Andre Bechtold | Brightwave | MQL |
+| Stephanie Wang | Helion | SQL |</div>
   </div>
 
   <div class="size-cell medium">
@@ -2628,8 +2746,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~115 tokens</span>
     </div>
-    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+    <div class="cell-html"><div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Operations / Visitors</b>
 
 | Name | Date | Host | NDA on file |
 | --- | --- | --- | --- |
@@ -2639,7 +2757,10 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 
 <b>CRM / Contacts</b>
 
-| Na…</div>
+| Name | Company | Stage |
+| --- | --- | --- |
+| Andre Bechtold | Brightwave | MQL |
+| Stephanie Wang | Helion | SQL |</div>
   </div>
 
   <div class="size-cell large">
@@ -2647,8 +2768,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~115 tokens</span>
     </div>
-    <div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Operations / Visitors</b>
+    <div class="cell-html"><div class="ws-table"><div class="ws-title">Operations · Visitors · 3 records</div><table><thead><tr><th>Name</th><th>Date</th><th>Host</th><th>NDA on file</th></tr></thead><tbody><tr><td>Q. Nguyen</td><td>2026-04-29</td><td>ops-1</td><td>false</td></tr><tr><td>L. Chen</td><td>2026-04-30</td><td>ops-1</td><td>true</td></tr><tr><td>M. Patel</td><td>2026-04-30</td><td>ops-2</td><td>false</td></tr></tbody></table></div><div class="ws-table"><div class="ws-title">CRM · Contacts · 2 records</div><table><thead><tr><th>Name</th><th>Company</th><th>Stage</th></tr></thead><tbody><tr><td>Andre Bechtold</td><td>Brightwave</td><td>MQL</td></tr><tr><td>Stephanie Wang</td><td>Helion</td><td>SQL</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Operations / Visitors</b>
 
 | Name | Date | Host | NDA on file |
 | --- | --- | --- | --- |
@@ -2658,7 +2779,10 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
 
 <b>CRM / Contacts</b>
 
-| Na…</div>
+| Name | Company | Stage |
+| --- | --- | --- |
+| Andre Bechtold | Brightwave | MQL |
+| Stephanie Wang | Helion | SQL |</div>
   </div>
 
       </div>
@@ -2719,14 +2843,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~157 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">2/7</div>
       <div class="ws-metric-label">Tickets done</div>
@@ -2743,14 +2871,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 | Key | Summary | Status | Assignee |
 | --- | --- | --- | --- |
 | PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
 | PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
-| PLAT-443 | Au…</div>
+| PLAT-443 | AutomationBench: instrument tool dispatch | In Review | carol |
+| PLAT-444 | Pages deploy: cache fixtures for 24h | In Progress | alice |
+| PLAT-445 | Belief-vs-truth metric on traces | To Do | bob |
+| PLAT-446 | iOS scene viewer: image card rendering | Blocked | carol |
+| PLAT-447 | Docs: typed asset authoring guide | To Do | alice |</div>
   </div>
 
   <div class="size-cell small">
@@ -2758,7 +2890,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~157 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">2/7</div>
       <div class="ws-metric-label">Tickets done</div>
@@ -2775,14 +2907,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 | Key | Summary | Status | Assignee |
 | --- | --- | --- | --- |
 | PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
 | PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
-| PLAT-443 | Au…</div>
+| PLAT-443 | AutomationBench: instrument tool dispatch | In Review | carol |
+| PLAT-444 | Pages deploy: cache fixtures for 24h | In Progress | alice |
+| PLAT-445 | Belief-vs-truth metric on traces | To Do | bob |
+| PLAT-446 | iOS scene viewer: image card rendering | Blocked | carol |
+| PLAT-447 | Docs: typed asset authoring guide | To Do | alice |</div>
   </div>
 
   <div class="size-cell medium">
@@ -2790,7 +2926,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~157 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">2/7</div>
       <div class="ws-metric-label">Tickets done</div>
@@ -2807,14 +2943,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 | Key | Summary | Status | Assignee |
 | --- | --- | --- | --- |
 | PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
 | PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
-| PLAT-443 | Au…</div>
+| PLAT-443 | AutomationBench: instrument tool dispatch | In Review | carol |
+| PLAT-444 | Pages deploy: cache fixtures for 24h | In Progress | alice |
+| PLAT-445 | Belief-vs-truth metric on traces | To Do | bob |
+| PLAT-446 | iOS scene viewer: image card rendering | Blocked | carol |
+| PLAT-447 | Docs: typed asset authoring guide | To Do | alice |</div>
   </div>
 
   <div class="size-cell large">
@@ -2822,7 +2962,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~157 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">2/7</div>
       <div class="ws-metric-label">Tickets done</div>
@@ -2839,14 +2979,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Sprint board</b>
+    <div class="ws-table"><div class="ws-title">Issues</div><table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th></tr></thead><tbody><tr><td>PLAT-441</td><td>Replay UI: scrubber slider drift on Safari</td><td>Done</td><td>alice</td><td>3</td></tr><tr><td>PLAT-442</td><td>Add scene.intent attribute to wire format</td><td>Done</td><td>bob</td><td>5</td></tr><tr><td>PLAT-443</td><td>AutomationBench: instrument tool dispatch</td><td>In Review</td><td>carol</td><td>8</td></tr><tr><td>PLAT-444</td><td>Pages deploy: cache fixtures for 24h</td><td>In Progress</td><td>alice</td><td>2</td></tr><tr><td>PLAT-445</td><td>Belief-vs-truth metric on traces</td><td>To Do</td><td>bob</td><td>5</td></tr><tr><td>PLAT-446</td><td>iOS scene viewer: image card rendering</td><td>Blocked</td><td>carol</td><td>3</td></tr><tr><td>PLAT-447</td><td>Docs: typed asset authoring guide</td><td>To Do</td><td>alice</td><td>2</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Sprint board</b>
 
 | Key | Summary | Status | Assignee |
 | --- | --- | --- | --- |
 | PLAT-441 | Replay UI: scrubber slider drift on Safari | Done | alice |
 | PLAT-442 | Add scene.intent attribute to wire format | Done | bob |
-| PLAT-443 | Au…</div>
+| PLAT-443 | AutomationBench: instrument tool dispatch | In Review | carol |
+| PLAT-444 | Pages deploy: cache fixtures for 24h | In Progress | alice |
+| PLAT-445 | Belief-vs-truth metric on traces | To Do | bob |
+| PLAT-446 | iOS scene viewer: image card rendering | Blocked | carol |
+| PLAT-447 | Docs: typed asset authoring guide | To Do | alice |</div>
   </div>
 
       </div>
@@ -2922,14 +3066,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~43 tokens</span>
     </div>
-    <div class="ws-doc">
+    <div class="cell-html"><div class="ws-doc">
       <div class="ws-doc-title">Q2 launch plan</div>
       
       <div class="ws-doc-meta">last edited 2026-04-30</div>
@@ -2965,8 +3113,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">2026-04-22</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Notion pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30
 • <b>On-call runbook</b> — 2026-04-29
@@ -2980,7 +3128,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~43 tokens</span>
     </div>
-    <div class="ws-doc">
+    <div class="cell-html"><div class="ws-doc">
       <div class="ws-doc-title">Q2 launch plan</div>
       
       <div class="ws-doc-meta">last edited 2026-04-30</div>
@@ -3016,8 +3164,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">2026-04-22</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Notion pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30
 • <b>On-call runbook</b> — 2026-04-29
@@ -3031,7 +3179,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~43 tokens</span>
     </div>
-    <div class="ws-doc">
+    <div class="cell-html"><div class="ws-doc">
       <div class="ws-doc-title">Q2 launch plan</div>
       
       <div class="ws-doc-meta">last edited 2026-04-30</div>
@@ -3067,8 +3215,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">2026-04-22</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Notion pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30
 • <b>On-call runbook</b> — 2026-04-29
@@ -3082,7 +3230,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~43 tokens</span>
     </div>
-    <div class="ws-doc">
+    <div class="cell-html"><div class="ws-doc">
       <div class="ws-doc-title">Q2 launch plan</div>
       
       <div class="ws-doc-meta">last edited 2026-04-30</div>
@@ -3118,8 +3266,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">2026-04-22</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>Notion pages</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>Notion pages</b>
 
 • <b>Q2 launch plan</b> — 2026-04-30
 • <b>On-call runbook</b> — 2026-04-29
@@ -3176,14 +3324,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">$5,280.00</div>
       <div class="ws-metric-label">Charges (succeeded)</div>
@@ -3200,8 +3352,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
   </div>
 
   <div class="size-cell small">
@@ -3209,7 +3361,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">$5,280.00</div>
       <div class="ws-metric-label">Charges (succeeded)</div>
@@ -3226,8 +3378,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
   </div>
 
   <div class="size-cell medium">
@@ -3235,7 +3387,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">$5,280.00</div>
       <div class="ws-metric-label">Charges (succeeded)</div>
@@ -3252,8 +3404,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
   </div>
 
   <div class="size-cell large">
@@ -3261,7 +3413,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~11 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">$5,280.00</div>
       <div class="ws-metric-label">Charges (succeeded)</div>
@@ -3278,8 +3430,8 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       
     </div>
     </div>
-    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div>
-    <div class="md-mini" style="margin-top:8px"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
+    <div class="ws-table"><div class="ws-title">Recent charges</div><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Customer</th><th>Description</th></tr></thead><tbody><tr><td>2026-04-30</td><td>$1,240.00</td><td>succeeded</td><td>cus_a</td><td>Plan renewal · Acme</td></tr><tr><td>2026-04-30</td><td>$840.00</td><td>succeeded</td><td>cus_b</td><td>Plan renewal · Brightwave</td></tr><tr><td>2026-04-30</td><td>$290.00</td><td>failed</td><td>cus_c</td><td>Add-on · Helion</td></tr><tr><td>2026-04-29</td><td>$3,200.00</td><td>succeeded</td><td>cus_d</td><td>Annual · Meridian</td></tr><tr><td>2026-04-29</td><td>$199.00</td><td>pending</td><td>cus_e</td><td>Trial conversion · Northwind</td></tr></tbody></table></div></div>
+    <div class="cell-md"><b>Stripe summary</b> — $5280.00 succeeded, 1 payouts pending</div>
   </div>
 
       </div>
@@ -3363,14 +3515,18 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         
   <div class="size-cell icon">
     <div class="size-label">
       <span>icon</span>
       <span class="size-tokens">~53 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">4</div>
       <div class="ws-metric-label">Open PRs</div>
@@ -3415,13 +3571,13 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">alice · draft</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>daslabhq/scene-otel · 4 open PRs</b>
 
 • <b>#12 Add scene.intent + amber rendering</b> — by alice
 • <b>#11 Worldstate v0.1 scaffold</b> — by carol
 • <b>#10 Fix scrubber slider on Safari</b> — by dave
-• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+• <b>#9 AutomationBench instrumentation</b> — by alice</div>
   </div>
 
   <div class="size-cell small">
@@ -3429,7 +3585,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>small</span>
       <span class="size-tokens">~53 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">4</div>
       <div class="ws-metric-label">Open PRs</div>
@@ -3474,13 +3630,13 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">alice · draft</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>daslabhq/scene-otel · 4 open PRs</b>
 
 • <b>#12 Add scene.intent + amber rendering</b> — by alice
 • <b>#11 Worldstate v0.1 scaffold</b> — by carol
 • <b>#10 Fix scrubber slider on Safari</b> — by dave
-• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+• <b>#9 AutomationBench instrumentation</b> — by alice</div>
   </div>
 
   <div class="size-cell medium">
@@ -3488,7 +3644,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>medium</span>
       <span class="size-tokens">~53 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">4</div>
       <div class="ws-metric-label">Open PRs</div>
@@ -3533,13 +3689,13 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">alice · draft</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>daslabhq/scene-otel · 4 open PRs</b>
 
 • <b>#12 Add scene.intent + amber rendering</b> — by alice
 • <b>#11 Worldstate v0.1 scaffold</b> — by carol
 • <b>#10 Fix scrubber slider on Safari</b> — by dave
-• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+• <b>#9 AutomationBench instrumentation</b> — by alice</div>
   </div>
 
   <div class="size-cell large">
@@ -3547,7 +3703,7 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
       <span>large</span>
       <span class="size-tokens">~53 tokens</span>
     </div>
-    <div class="ws-grid-3">
+    <div class="cell-html"><div class="ws-grid-3">
       <div class="ws-metric">
       <div class="ws-metric-value">4</div>
       <div class="ws-metric-label">Open PRs</div>
@@ -3592,13 +3748,13 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
         </div>
         <div class="ws-li-sub">alice · draft</div>
         
-      </li></ul></div>
-    <div class="md-mini" style="margin-top:8px"><b>daslabhq/scene-otel · 4 open PRs</b>
+      </li></ul></div></div>
+    <div class="cell-md"><b>daslabhq/scene-otel · 4 open PRs</b>
 
 • <b>#12 Add scene.intent + amber rendering</b> — by alice
 • <b>#11 Worldstate v0.1 scaffold</b> — by carol
 • <b>#10 Fix scrubber slider on Safari</b> — by dave
-• <b>#9 AutomationBench instrumentation</b> — by alic…</div>
+• <b>#9 AutomationBench instrumentation</b> — by alice</div>
   </div>
 
       </div>
@@ -3609,5 +3765,23 @@ We&#39;re shipping the new agent runtime in three phases. Phase 1 (May 6) covers
   <footer>
     scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · 6 canonical · 10 vendors
   </footer>
+  <script>
+    // Format tabs — flip data-format on the strip below each tabs control
+    document.querySelectorAll('.format-tabs[data-tabs]').forEach(tabs => {
+      tabs.addEventListener('click', e => {
+        const target = e.target;
+        if (!(target instanceof HTMLButtonElement)) return;
+        const format = target.dataset.format;
+        if (!format) return;
+        const strip = tabs.nextElementSibling;
+        if (strip && strip.classList.contains('size-strip')) {
+          strip.setAttribute('data-format', format);
+        }
+        tabs.querySelectorAll('button').forEach(b => {
+          b.classList.toggle('active', b.dataset.format === format);
+        });
+      });
+    });
+  </script>
 </body>
 </html>

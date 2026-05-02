@@ -1,14 +1,15 @@
 # scene-state
 
-> One asset definition. Three rendering targets. The agent's view of the world.
+> One asset definition. One typed JSON shape. Many rendering targets. The agent's view of the world.
 
-Typed asset shapes + visual + headless **views** for AI agents. Same definition produces:
+Typed asset shapes + visual + headless **views** for AI agents. Authors return **WidgetData** JSON per size; the framework converts:
 
-- **HTML** — for humans, dashboards, the [scene-otel](https://github.com/daslabhq/scene-otel) scrubber, iOS/web viewers
-- **Markdown** — for LLM context injection (3–5× cheaper in tokens than dumping raw JSON, while preserving the structure agents need to reason about)
-- **Text** — for terminals and text-only models
+- **JSON** (`WidgetData`) — the canonical primitive every author writes. Same JSON shape Daslab iOS, Daslab web, and any third-party renderer can consume.
+- **HTML** — rendered from WidgetData for humans, dashboards, the [scene-otel](https://github.com/daslabhq/scene-otel) scrubber, iOS/web viewers
+- **Markdown** — rendered from WidgetData for LLM context injection (3–5× cheaper in tokens than dumping raw JSON, while preserving the structure agents need to reason about)
+- **Text** — rendered from WidgetData for terminals and text-only models
 
-Ships with **10 typed assets** out of the box (Gmail, Salesforce, Slack, Google Sheets, Google Calendar, Airtable, Jira, Notion, Stripe, GitHub) plus a library of view primitives (Table, Metric, List, KeyValue, Calendar, Status, Document, Image, Plan).
+Ships with **10 typed assets** out of the box (Gmail, Salesforce, Slack, Google Sheets, Google Calendar, Airtable, Jira, Notion, Stripe, GitHub) plus a library of widget primitives (Table, Metric, List, KeyValue, Calendar, Status, Document, Image, Plan, Stack).
 
 **[Live gallery →](https://daslabhq.github.io/scene-state/)**
 

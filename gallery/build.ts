@@ -159,57 +159,88 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--fg); }
 .ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
 
-/* ----- Size strip — fixed-width columns, no aspect-ratio fighting ----- */
+/* ----- Size strip — true iOS WidgetKit aspect ratios + format tabs ----- */
+.format-tabs {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.format-tabs button {
+  appearance: none; border: none; background: transparent;
+  padding: 5px 14px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.format-tabs button:hover { color: var(--fg); }
+.format-tabs button.active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
 .size-strip {
   display: grid;
-  grid-template-columns: 140px 200px 320px minmax(0, 1fr);
-  gap: 20px;
-  margin-top: 8px;
+  /* Apple WidgetKit grid: icon=1×1 · small=2×2 · medium=4×2 · large=4×4 */
+  grid-template-columns: 110px 158px 329px 329px;
+  gap: 22px;
+  margin-top: 4px;
+  align-items: start;
 }
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
   .size-strip { display: flex; overflow-x: auto; padding-bottom: 8px; }
   .size-strip .size-cell { flex-shrink: 0; }
-  .size-strip .size-cell.icon { width: 140px; }
-  .size-strip .size-cell.small { width: 200px; }
-  .size-strip .size-cell.medium { width: 320px; }
-  .size-strip .size-cell.large { width: 480px; }
+  .size-strip .size-cell.icon { width: 110px; }
+  .size-strip .size-cell.small { width: 158px; }
+  .size-strip .size-cell.medium { width: 329px; }
+  .size-strip .size-cell.large { width: 329px; }
 }
 .size-cell {
+  position: relative;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 14px;
   overflow: hidden;
-  min-width: 0;
-  display: flex; flex-direction: column;
 }
-.size-cell.icon { min-height: 200px; align-items: center; }
-.size-cell.icon .size-label { width: 100%; }
-.size-cell.icon .ws-app-icon { margin: auto 0; }
-.size-cell.small { min-height: 200px; }
-.size-cell.small .ws-small {
-  background: white; border: 1px solid var(--border); border-radius: 12px;
-  padding: 12px; flex: 1;
-}
-.size-cell.medium { min-height: 200px; }
-.size-cell.large { min-height: 280px; }
+.size-cell.icon  { aspect-ratio: 1; }      /* 1×1 — square */
+.size-cell.small { aspect-ratio: 1; }      /* 2×2 — square */
+.size-cell.medium { aspect-ratio: 2 / 1; } /* 4×2 — wide */
+.size-cell.large { aspect-ratio: 1; }      /* 4×4 — square */
 .size-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); font-weight: 600; margin-bottom: 10px;
+  position: absolute; top: 8px; left: 10px; right: 10px;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); font-weight: 600;
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  flex-shrink: 0;
+  pointer-events: none;
+  z-index: 2;
 }
 .size-tokens { color: var(--accent); font-weight: 500; }
-.size-cell .md-mini {
-  background: white; border: 1px solid var(--border); border-radius: 6px;
-  padding: 8px;
+.cell-html, .cell-md {
+  position: absolute; inset: 24px 12px 12px 12px;
+  overflow: hidden;
+}
+.cell-html { display: flex; align-items: center; justify-content: center; }
+.cell-html > * { width: 100%; max-height: 100%; overflow: hidden; }
+.size-cell.icon .cell-html > * { width: auto; }
+.cell-md {
+  display: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10.5px; line-height: 1.55;
   white-space: pre-wrap; word-break: break-word;
-  max-height: 90px; overflow: hidden;
-  color: var(--fg); margin-top: 8px;
-  flex-shrink: 0;
+  color: var(--fg);
+  overflow: auto;
 }
+.size-strip[data-format="markdown"] .cell-html { display: none; }
+.size-strip[data-format="markdown"] .cell-md   { display: block; }
 .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
 .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .card-name { font-size: 18px; font-weight: 600; }
@@ -333,8 +364,8 @@ const sizeCell = (r: SizeRender) => `
       <span>${r.size}</span>
       <span class="size-tokens">~${r.tokens} tokens</span>
     </div>
-    ${r.html}
-    <div class="md-mini" style="margin-top:8px">${mdSyntax(r.markdown.slice(0, 240))}${r.markdown.length > 240 ? "…" : ""}</div>
+    <div class="cell-html">${r.html}</div>
+    <div class="cell-md">${mdSyntax(r.markdown)}</div>
   </div>
 `;
 
@@ -368,7 +399,11 @@ const cardHtml = (c: Card) => {
       <div class="col-label">All sizes</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="size-strip">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+      </div>
+      <div class="size-strip" data-format="html">
         ${c.renders.filter(r => r.size !== "xlarge").map(sizeCell).join("")}
       </div>
     </div>
@@ -427,6 +462,24 @@ const html = `<!DOCTYPE html>
   <footer>
     scene-state · MIT · <a href="https://github.com/daslabhq/scene-state">github.com/daslabhq/scene-state</a> · ${canonicalCards.length} canonical · ${vendorCards.length} vendors
   </footer>
+  <script>
+    // Format tabs — flip data-format on the strip below each tabs control
+    document.querySelectorAll('.format-tabs[data-tabs]').forEach(tabs => {
+      tabs.addEventListener('click', e => {
+        const target = e.target;
+        if (!(target instanceof HTMLButtonElement)) return;
+        const format = target.dataset.format;
+        if (!format) return;
+        const strip = tabs.nextElementSibling;
+        if (strip && strip.classList.contains('size-strip')) {
+          strip.setAttribute('data-format', format);
+        }
+        tabs.querySelectorAll('button').forEach(b => {
+          b.classList.toggle('active', b.dataset.format === format);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
 `;

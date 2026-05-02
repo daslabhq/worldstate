@@ -1,10 +1,11 @@
 /**
  * scene-state — typed asset shapes + visual + headless views for AI agents.
  *
- * Same view definition produces:
- *   - HTML        for human-visual rendering
- *   - Markdown    for LLM context (token-efficient summaries)
- *   - Text        for terminal output and text-only models
+ * Authors return WidgetData JSON per size; the framework converts to:
+ *   - JSON       (the canonical primitive — same shape Daslab iOS uses)
+ *   - HTML       for human-visual rendering (dashboards, scrubbers, web)
+ *   - Markdown   for LLM context (token-efficient summaries)
+ *   - Text       for terminal output and text-only models
  *
  * Two layers of types:
  *   - Canonical types (Email, Message, Contact, …)  — abstract primitives
@@ -36,7 +37,22 @@ export {
   type AssetDef,
 } from "./asset.js";
 
-// Built-in primitives
+// WidgetData — the canonical JSON shape that view authors return
+export type {
+  WidgetData,
+  WidgetColor,
+  IconWidget, StackWidget, ListWidget, TableWidget,
+  MetricWidget, MetricGridWidget, KeyValueWidget,
+  StatusWidget, DocumentWidget, CalendarWidget,
+  PlanWidget, EmptyWidget,
+  ListItem, CalendarEventEntry, PlanStep,
+  WidgetRenderer, WidgetSizes,
+} from "./widgets.js";
+
+// Renderers — convert WidgetData to HTML / Markdown / Text
+export * as render from "./render/index.js";
+
+// Legacy primitives — the pre-WidgetData view library, kept for back-compat
 export * as primitives from "./views/primitives.js";
 
 // Canonical types — abstract primitives
