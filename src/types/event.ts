@@ -8,6 +8,7 @@
 import { defineAsset } from "../asset.js";
 import { CalendarView, type CalendarProps } from "../views/primitives.js";
 import { defineView, escapeHtml } from "../view.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 
 export interface CalendarEventRecord {
   id:         string;
@@ -41,14 +42,14 @@ const UpcomingView = defineView<CalendarEventsState>({
   name: "UpcomingEvents",
   sizes: {
     icon: (s) => ({
-      html: `<div class="ws-app-icon"><div class="ws-app-emoji">📅</div><div class="ws-app-name">Events</div>${s.events.length ? `<div class="ws-app-badge">${s.events.length}</div>` : ""}</div>`,
+      html: appIcon({ name: "Events", glyph: ICONS.calendar, color: "red", badge: s.events.length || undefined }),
       markdown: `📅 Events · ${s.events.length} upcoming`,
     }),
     small: (s) => {
       const next = nextEvent(s);
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">📅 Next up</div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.calendar, color: "red" })}<span>Next up</span></div>
           ${next ? `<div class="ws-small-body">
             <div class="ws-small-title">${escapeHtml(next.title)}</div>
             <div class="ws-small-sub">${escapeHtml(next.allDay ? "all day" : shortTime(next.startsAt))}${next.location ? ` · ${escapeHtml(next.location)}` : ""}</div>

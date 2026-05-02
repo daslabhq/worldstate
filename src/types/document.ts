@@ -7,6 +7,7 @@
 
 import { defineAsset } from "../asset.js";
 import { defineView, escapeHtml, truncate } from "../view.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 import { DocumentView } from "../views/primitives.js";
 
 export interface DocumentRecord {
@@ -31,14 +32,14 @@ const FeaturedDocumentView = defineView<DocumentState>({
   name: "FeaturedDocument",
   sizes: {
     icon: (s) => ({
-      html: `<div class="ws-app-icon"><div class="ws-app-emoji">📓</div><div class="ws-app-name">Docs</div>${s.documents.length ? `<div class="ws-app-badge">${s.documents.length}</div>` : ""}</div>`,
+      html: appIcon({ name: "Docs", glyph: ICONS.documentText, color: "yellow", badge: s.documents.length || undefined }),
       markdown: `📓 Docs · ${s.documents.length}`,
     }),
     small: (s) => {
       const f = featured(s);
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">📓 ${s.documents.length} pages</div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.documentText, color: "yellow" })}<span>${s.documents.length} pages</span></div>
           ${f ? `<div class="ws-small-body">
             <div class="ws-small-title">${escapeHtml(truncate(f.title, 36))}</div>
             <div class="ws-small-sub">${escapeHtml(f.modifiedAt ?? "")}</div>

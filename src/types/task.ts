@@ -7,6 +7,7 @@
 
 import { defineAsset } from "../asset.js";
 import { defineView, escapeHtml } from "../view.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 import { TableView, MetricView } from "../views/primitives.js";
 
 export interface TaskRecord {
@@ -38,7 +39,7 @@ const TaskBoardView = defineView<TasksState>({
       const c = counts(s);
       const open = c.todo + c.in_progress;
       return {
-        html: `<div class="ws-app-icon"><div class="ws-app-emoji">✓</div><div class="ws-app-name">Tasks</div>${open ? `<div class="ws-app-badge">${open}</div>` : ""}</div>`,
+        html: appIcon({ name: "Tasks", glyph: ICONS.checkCircle, color: "orange", badge: open || undefined }),
         markdown: `✓ Tasks · ${open} open`,
       };
     },
@@ -46,7 +47,7 @@ const TaskBoardView = defineView<TasksState>({
       const c = counts(s);
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">✓ Tasks</div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.checkCircle, color: "orange" })}<span>Tasks</span></div>
           <div class="ws-small-body">
             <div class="ws-small-title">${c.in_progress} in progress · ${c.done} done</div>
             ${c.blocked ? `<div class="ws-small-sub" style="color:var(--red,#ef4444)">${c.blocked} blocked</div>` : `<div class="ws-small-sub">${c.todo} to do</div>`}

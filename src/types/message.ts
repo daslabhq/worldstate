@@ -7,6 +7,7 @@
 import { defineAsset } from "../asset.js";
 import { defineView, escapeHtml, truncate } from "../view.js";
 import { ListView } from "../views/primitives.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 
 export interface ChatMessage {
   id:        string;
@@ -33,7 +34,7 @@ const ActivityView = defineView<MessageState>({
     icon: (s) => {
       const total = s.messages.length;
       return {
-        html: `<div class="ws-app-icon"><div class="ws-app-emoji">💬</div><div class="ws-app-name">Chat</div>${total ? `<div class="ws-app-badge">${total}</div>` : ""}</div>`,
+        html: appIcon({ name: "Chat", glyph: ICONS.chat, color: "green", badge: total || undefined }),
         markdown: `💬 Chat · ${total} message${total === 1 ? "" : "s"}`,
       };
     },
@@ -42,7 +43,7 @@ const ActivityView = defineView<MessageState>({
       const top = [...grouped.entries()][0];
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">💬 ${grouped.size} active channel${grouped.size === 1 ? "" : "s"}</div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.chat, color: "green" })}<span>${grouped.size} active channel${grouped.size === 1 ? "" : "s"}</span></div>
           ${top ? `<div class="ws-small-body">
             <div class="ws-small-title">#${escapeHtml(top[0])}</div>
             <div class="ws-small-sub">${top[1].length} message${top[1].length === 1 ? "" : "s"}</div>

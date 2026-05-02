@@ -8,6 +8,7 @@
 import { defineAsset } from "../asset.js";
 import { defineView, escapeHtml, truncate } from "../view.js";
 import { ListView } from "../views/primitives.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 
 export interface EmailMessage {
   id:         string;
@@ -31,7 +32,7 @@ const InboxView = defineView<EmailMailboxState>({
     icon: (s) => {
       const u = unreadCount(s);
       return {
-        html: `<div class="ws-app-icon"><div class="ws-app-emoji">📧</div><div class="ws-app-name">Email</div>${u ? `<div class="ws-app-badge">${u}</div>` : ""}</div>`,
+        html: appIcon({ name: "Email", glyph: ICONS.envelope, color: "blue", badge: u || undefined }),
         markdown: `📧 Email${u ? ` · ${u} unread` : ""}`,
       };
     },
@@ -40,7 +41,7 @@ const InboxView = defineView<EmailMailboxState>({
       const top = s.messages.find(m => m.unread) ?? s.messages[0];
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">📧 Inbox <span class="ws-small-num">${u} unread</span></div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.envelope, color: "blue" })}<span>Inbox</span> <span class="ws-small-num">${u} unread</span></div>
           ${top ? `<div class="ws-small-body">
             <div class="ws-small-title">${escapeHtml(truncate(top.subject || "(no subject)", 40))}</div>
             <div class="ws-small-sub">${escapeHtml(top.from)}</div>

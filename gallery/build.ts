@@ -100,38 +100,80 @@ main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
 .ext-pill { background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
 /* ----- iOS home-screen mosaic ----- */
-.mosaic { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 24px; padding: 28px; margin-bottom: 32px; }
-.mosaic-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-.mosaic-sub { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px; }
-.mosaic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.mosaic { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 28px; padding: 36px 40px; margin-bottom: 36px; }
+.mosaic-title { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+.mosaic-sub { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 28px; max-width: 720px; line-height: 1.5; }
+.mosaic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px 22px; }
 @media (max-width: 800px) { .mosaic-grid { grid-template-columns: repeat(3, 1fr); } }
-.mosaic-tile { background: rgba(255,255,255,0.95); border-radius: 16px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.mosaic-tile { display: block; text-decoration: none; }
+.mosaic-tile .ws-app-name { color: rgba(255,255,255,0.85); }
 
 /* ----- App icon (size=icon) ----- */
-.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; position: relative; }
-.ws-app-emoji { font-size: 36px; }
-.ws-app-name { font-size: 11px; color: var(--muted); font-weight: 500; }
-.ws-app-badge { position: absolute; top: -2px; right: -2px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--red); color: white; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ws-app-tile {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  /* iOS squircle approximation — superellipse-ish via large border-radius */
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 1px 2px rgba(255,255,255,0.15) inset;
+  transition: transform 0.12s ease;
+}
+.mosaic-tile:hover .ws-app-tile { transform: translateY(-2px); }
+.ws-app-tile--chip { width: 28px; height: 28px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.ws-app-glyph { width: 44%; height: 44%; display: flex; align-items: center; justify-content: center; }
+.ws-app-glyph svg { width: 100%; height: 100%; }
+.ws-app-tile--chip .ws-app-glyph { width: 60%; height: 60%; }
+.ws-app-name { font-size: 12px; color: var(--fg); font-weight: 500; line-height: 1.2; }
+.ws-app-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 22px; height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.mosaic-tile .ws-app-badge { border-color: #1e293b; }
 
-/* ----- Small widget (2x2) ----- */
-.ws-small { padding: 14px; height: 100%; display: flex; flex-direction: column; }
-.ws-small-head { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
-.ws-small-num { color: var(--muted); font-weight: 400; margin-left: 4px; }
-.ws-small-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
-.ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+/* ----- Small widget (2×2) — Apple systemSmall vibe ----- */
+.ws-small {
+  padding: 16px;
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.ws-small-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 12px; }
+.ws-small-head .ws-app-tile--chip { flex-shrink: 0; }
+.ws-small-num { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 12px; }
+.ws-small-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--fg); }
+.ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
 
-/* ----- Size strip (per-asset all-sizes display) ----- */
-.size-strip { display: grid; grid-template-columns: 100px 158px 240px 1fr; gap: 16px; margin-top: 16px; align-items: stretch; }
-@media (max-width: 1100px) { .size-strip { grid-template-columns: 1fr; } }
-.size-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow: hidden; }
-.size-cell.icon { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+/* ----- Size strip ----- */
+.size-strip { display: grid; grid-template-columns: 110px 168px 280px 1fr; gap: 24px; margin-top: 16px; align-items: stretch; }
+@media (max-width: 1180px) { .size-strip { grid-template-columns: 1fr 1fr; gap: 18px; } }
+@media (max-width: 700px)  { .size-strip { grid-template-columns: 1fr; } }
+.size-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.size-cell.icon { aspect-ratio: 1; align-items: center; justify-content: center; padding: 16px 8px; }
+.size-cell.icon .size-label { width: 100%; }
+.size-cell.icon .ws-app-icon { flex: 1; display: flex; align-items: center; justify-content: center; }
 .size-cell.small { aspect-ratio: 1; }
-.size-cell.medium { aspect-ratio: 2/1; min-height: 130px; }
-.size-cell.large { min-height: 240px; }
-.size-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.size-cell.medium { aspect-ratio: 2/1; min-height: 150px; }
+.size-cell.large { min-height: 280px; }
+.size-cell .ws-small { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 12px; flex: 1; }
+.size-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .size-tokens { color: var(--accent); font-weight: 500; }
-.md-mini { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; max-height: 100px; overflow: hidden; color: var(--fg); }
+.size-cell .md-mini { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; line-height: 1.55; white-space: pre-wrap; max-height: 90px; overflow: hidden; color: var(--fg); margin-top: 8px; }
 .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
 .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .card-name { font-size: 18px; font-weight: 600; }

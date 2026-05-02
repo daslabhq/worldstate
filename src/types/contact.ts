@@ -7,6 +7,7 @@
 
 import { defineAsset } from "../asset.js";
 import { defineView, escapeHtml } from "../view.js";
+import { appIcon, appIconChip, ICONS } from "../views/heroicons.js";
 import { TableView } from "../views/primitives.js";
 
 export interface ContactRecord {
@@ -27,14 +28,14 @@ const ContactListView = defineView<ContactsState>({
   name: "ContactList",
   sizes: {
     icon: (s) => ({
-      html: `<div class="ws-app-icon"><div class="ws-app-emoji">👤</div><div class="ws-app-name">Contacts</div>${s.contacts.length ? `<div class="ws-app-badge">${s.contacts.length}</div>` : ""}</div>`,
+      html: appIcon({ name: "Contacts", glyph: ICONS.users, color: "purple", badge: s.contacts.length || undefined }),
       markdown: `👤 Contacts · ${s.contacts.length}`,
     }),
     small: (s) => {
       const top = s.contacts[0];
       return {
         html: `<div class="ws-small">
-          <div class="ws-small-head">👤 ${s.contacts.length} contacts</div>
+          <div class="ws-small-head">${appIconChip({ glyph: ICONS.users, color: "purple" })}<span>${s.contacts.length} contacts</span></div>
           ${top ? `<div class="ws-small-body">
             <div class="ws-small-title">${escapeHtml(top.firstName + " " + top.lastName)}</div>
             <div class="ws-small-sub">${escapeHtml(top.title ?? top.company ?? top.email ?? "")}</div>
