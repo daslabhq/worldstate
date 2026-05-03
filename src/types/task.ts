@@ -121,7 +121,7 @@ export const Task = defineAsset<TasksState>({
   mockState: () => ({
     tasks: [
       { id: "t1", title: "Wire up scene-bench AB adapter",          status: "done",        assignee: "alice", priority: "high" },
-      { id: "t2", title: "Add canonical types to scene-state",      status: "in_progress", assignee: "bob",   priority: "high" },
+      { id: "t2", title: "Add canonical types to scene-views",      status: "in_progress", assignee: "bob",   priority: "high" },
       { id: "t3", title: "Land daslab.dev/labs page",               status: "todo",        assignee: "alice", priority: "medium" },
       { id: "t4", title: "iOS scene viewer: image card aspect bug", status: "blocked",     assignee: "carol", priority: "medium" },
     ],

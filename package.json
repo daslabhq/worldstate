@@ -1,7 +1,7 @@
 {
-  "name": "scene-state",
-  "version": "0.4.0",
-  "description": "Typed asset shapes + visual + headless views for AI agents. The visual language for agent scene-state.",
+  "name": "scene-views",
+  "version": "0.5.0",
+  "description": "Typed asset shapes + their canonical views for AI agents. The shared vocabulary providers and renderers use to talk about scene contents — JSON in, HTML / Markdown / Text / native widgets out.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",

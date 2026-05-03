@@ -2,7 +2,7 @@
  * WidgetData — the canonical JSON shape that view authors return.
  *
  * Mirrors Daslab's `server/web/src/components/widgets/types.ts` so the
- * iOS app, the web client, and the scene-state gallery all render from
+ * iOS app, the web client, and the scene-views gallery all render from
  * the same primitive. Authors return WidgetData per size; renderers
  * handle every output format (HTML / Markdown / Text / future SwiftUI /
  * Rerun / USD).

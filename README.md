@@ -1,6 +1,6 @@
-# scene-state
+# scene-views
 
-> One asset definition. One typed JSON shape. Many rendering targets. The agent's view of the world.
+> One asset definition. One typed JSON shape. Many rendering targets. The agent's view of the world, rendered for any surface.
 
 Typed asset shapes + visual + headless **views** for AI agents. Authors return **WidgetData** JSON per size; the framework converts:
 
@@ -15,18 +15,18 @@ Vendor implementations (Gmail, Slack, Salesforce, SAP S/4HANA, etc.) live in **b
 
 Vendor types declare `extends: ["email/mailbox"]` etc. — tools that consume canonical types work uniformly across all vendors that implement them.
 
-**[Live gallery →](https://daslabhq.github.io/scene-state/)**
+**[Live gallery →](https://daslabhq.github.io/scene-views/)**
 
 ## Install
 
 ```bash
-npm install scene-state
+npm install scene-views
 ```
 
 ## Use
 
 ```ts
-import { Email } from "scene-state";
+import { Email } from "scene-views";
 
 const inboxState = { messages: await fetchInbox() };  // any vendor — Gmail, Outlook, IMAP, …
 
@@ -52,14 +52,14 @@ Today most agents do one of two things with their world state, and both are bad:
 1. **Dump raw JSON into the context** — wastes tokens, hurts comprehension, makes long-running agents expensive
 2. **Hand-write a custom summarizer per app** — every team rebuilds Gmail-summarize, Salesforce-summarize, Stripe-summarize, … — none consistent, none shared
 
-scene-state gives you **one definition, three rendering targets, ten apps batteries-included.** Lazy users get good defaults. Power users override per view.
+scene-views gives you **one definition, three rendering targets, ten apps batteries-included.** Lazy users get good defaults. Power users override per view.
 
 ## API
 
 ### `defineAsset({ type, schema, defaultView, … })`
 
 ```ts
-import { defineAsset, defineView } from "scene-state";
+import { defineAsset, defineView } from "scene-views";
 
 const Gmail = defineAsset({
   type:        "gmail/account",
@@ -93,7 +93,7 @@ const GmailInboxView = defineView<GmailState>({
 Most asset views compose a small library of generic primitives:
 
 ```ts
-import { primitives } from "scene-state";
+import { primitives } from "scene-views";
 
 const { TableView, MetricView, ListView, KeyValueView,
         CalendarView, StatusView, DocumentView, ImageView, PlanView } = primitives;
@@ -112,7 +112,7 @@ Each primitive ships HTML + Markdown out of the box.
 When emitting trace events with [scene-otel](https://github.com/daslabhq/scene-otel), pass the asset directly — the schema becomes the type contract for the snapshot, and the default view powers the scrubber's rendering automatically:
 
 ```ts
-import { Gmail } from "scene-state";
+import { Gmail } from "scene-views";
 import { scene } from "scene-otel";
 
 scene.set(Gmail.type, world.gmail);              // schema-validated emit
@@ -123,7 +123,7 @@ scene.milestone("inbox_clean", {
 });
 ```
 
-The scene-otel scrubber auto-detects registered scene-state assets and renders cards with the asset's default view.
+The scene-otel scrubber auto-detects registered scene-views assets and renders cards with the asset's default view.
 
 ## Schemas
 
@@ -153,6 +153,6 @@ MIT. See [LICENSE](./LICENSE).
 
 ## Related
 
-- [`scene-otel`](https://github.com/daslabhq/scene-otel) — wire format for snapshotting agent scene-state to OTel events. Pairs naturally.
+- [`scene-otel`](https://github.com/daslabhq/scene-otel) — wire format for snapshotting agent state to OTel events. Pairs naturally — scene-views renders what scene-otel snapshots.
 - [`agent-otel`](https://github.com/mirkokiefer/agent-otel) — OTel router for agent telemetry.
 - [`autocompile`](https://github.com/mirkokiefer/autocompile) — observes repeated agent runs, compiles invariant parts to code.

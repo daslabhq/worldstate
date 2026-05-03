@@ -1,8 +1,8 @@
 /**
- * Asset — typed shape + view bindings for a piece of agent scene-state.
+ * Asset — typed shape + view bindings for a piece of agent state.
  *
- * Canonical types (Email, Message, Contact, …) live in `scene-state/types/`.
- * Vendor implementations (Gmail, Slack, …) live in `scene-state/vendors/` and
+ * Canonical types (Email, Message, Contact, …) live in `scene-views/types/`.
+ * Vendor implementations (Gmail, Slack, …) live in `scene-views/vendors/` and
  * declare `extends: ["email/mailbox"]` to identify the canonical type they
  * implement.
  *

@@ -1,5 +1,5 @@
 /**
- * scene-state — typed canonical asset shapes + multi-format views for AI agents.
+ * scene-views — typed canonical asset shapes + multi-format views for AI agents.
  *
  * Authors return WidgetData JSON per size; the framework converts to:
  *   - JSON       (the canonical primitive — same shape Daslab iOS uses)
@@ -7,7 +7,7 @@
  *   - Markdown   for LLM context (token-efficient summaries)
  *   - Text       for terminal output and text-only models
  *
- * scene-state core ships only canonical types — Email, Message, Contact,
+ * scene-views core ships only canonical types — Email, Message, Contact,
  * Event, Task, Document. Vendor implementations (Gmail, Slack, Salesforce, …)
  * live in benchmark-scoped repos like scene-bench, where they belong with
  * the benchmarks they came from.
