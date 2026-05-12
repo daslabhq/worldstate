@@ -1,0 +1,180 @@
+/**
+ * scenecast/styles/widgets.css
+ *
+ * Stylesheet for the .ws-* CSS classes the WidgetData renderers emit.
+ * Embed this once per page to render scenecast's HTML output correctly.
+ *
+ * Consumers:
+ *   - scenecast's own gallery reads this file at build time
+ *   - arch-bench, future benches, third-party consumers all import from here
+ *
+ * Variables it expects (set on :root or a parent):
+ *   --fg, --muted, --border, --bg, --accent, --green, --red
+ */
+
+/* ---------------------------------------------------------------------------
+ * App icon (size=icon)
+ * --------------------------------------------------------------------------- */
+
+.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ws-app-tile {
+  position: relative;
+  width: 64px; height: 64px; flex-shrink: 0;
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 1px 2px rgba(255,255,255,0.15) inset;
+  transition: transform 0.12s ease;
+}
+.ws-app-tile--chip { width: 28px; height: 28px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.ws-app-glyph { width: 50%; height: 50%; display: flex; align-items: center; justify-content: center; }
+.ws-app-glyph svg { width: 100%; height: 100%; }
+.ws-app-tile--chip .ws-app-glyph { width: 60%; height: 60%; }
+.ws-app-name { font-size: 11px; color: var(--fg); font-weight: 500; line-height: 1.2; flex-shrink: 0; }
+.ws-app-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 999px; background: #ff3b30; color: white;
+  font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+/* ---------------------------------------------------------------------------
+ * Stack widget — header + body
+ * --------------------------------------------------------------------------- */
+
+.ws-stack { display: flex; flex-direction: column; gap: 10px; }
+.ws-stack-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.ws-stack-head .ws-app-tile--chip { flex-shrink: 0; }
+.ws-stack-title { font-weight: 600; }
+.ws-stack-meta { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: auto; }
+.ws-stack--grid-2 .ws-stack-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------------------------------------------------------------------------
+ * List widget
+ * --------------------------------------------------------------------------- */
+
+.ws-list ul { margin: 0; padding: 0; list-style: none; }
+.ws-list--grid-2 ul { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.ws-list--grid-2 .ws-li { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; }
+.ws-li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.ws-li:last-child { border-bottom: none; }
+.ws-li-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ws-li-title { font-size: 14px; font-weight: 500; }
+.ws-li-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.ws-li-detail { font-size: 12.5px; color: #475569; margin-top: 4px; }
+.ws-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--accent); color: white; padding: 2px 8px; border-radius: 999px; }
+.ws-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.ws-empty { color: var(--muted); font-style: italic; padding: 12px; }
+.ws-more { color: var(--muted); font-style: italic; font-size: 12px; padding: 6px 0; }
+
+/* ---------------------------------------------------------------------------
+ * Table widget
+ * --------------------------------------------------------------------------- */
+
+.ws-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ws-table th { text-align: left; padding: 8px 10px; background: var(--bg); border-bottom: 1px solid var(--border); font-weight: 500; color: var(--muted); font-size: 12px; }
+.ws-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.ws-table tr:last-child td { border-bottom: none; }
+
+/* ---------------------------------------------------------------------------
+ * Metric widget
+ * --------------------------------------------------------------------------- */
+
+.ws-metric { text-align: left; padding: 14px; background: var(--bg); border-radius: 8px; }
+.ws-metric-value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.ws-metric-value .ws-unit { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+.ws-metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.ws-delta { font-size: 12px; margin-top: 6px; }
+.ws-up { color: var(--green); }
+.ws-down { color: var(--red); }
+.ws-flat { color: var(--muted); }
+.ws-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.ws-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+
+/* ---------------------------------------------------------------------------
+ * KeyValue widget
+ * --------------------------------------------------------------------------- */
+
+.ws-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 12px; }
+.ws-kv-row:last-child { border-bottom: none; }
+.ws-kv-key { color: var(--muted); }
+.ws-kv-val { font-weight: 500; text-align: right; }
+
+/* ---------------------------------------------------------------------------
+ * Status widget
+ * --------------------------------------------------------------------------- */
+
+.ws-status { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 8px; }
+.ws-status-ok   { background: #ecfdf5; color: #065f46; }
+.ws-status-warn { background: #fffbeb; color: #78350f; }
+.ws-status-fail { background: #fef2f2; color: #7f1d1d; }
+.ws-status-icon { font-size: 22px; font-weight: 700; }
+.ws-status-msg  { font-weight: 500; font-size: 14px; }
+.ws-status-details { font-size: 12px; margin-top: 6px; }
+
+/* ---------------------------------------------------------------------------
+ * Document widget
+ * --------------------------------------------------------------------------- */
+
+.ws-doc-title  { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.ws-doc-byline,
+.ws-doc-meta   { color: var(--muted); font-size: 12.5px; }
+.ws-doc-body   { margin-top: 10px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.ws-doc-stats  { color: var(--muted); font-size: 11px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ---------------------------------------------------------------------------
+ * Calendar widget
+ * --------------------------------------------------------------------------- */
+
+.ws-cal { display: flex; flex-direction: column; gap: 8px; }
+.ws-cal-row { display: grid; grid-template-columns: 220px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+.ws-cal-row:last-child { border-bottom: none; }
+.ws-cal-time  { color: var(--muted); font-size: 12.5px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.ws-cal-title { font-size: 14px; font-weight: 500; }
+.ws-cal-loc,
+.ws-cal-att   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ---------------------------------------------------------------------------
+ * Plan widget
+ * --------------------------------------------------------------------------- */
+
+.ws-plan-row { display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 4px 0; }
+.ws-plan-mark { color: var(--muted); font-size: 16px; }
+.ws-plan-completed   .ws-plan-mark { color: var(--green); }
+.ws-plan-in_progress .ws-plan-mark { color: var(--accent); }
+.ws-plan-failed      .ws-plan-mark { color: var(--red); }
+.ws-plan-label  { font-size: 13px; }
+.ws-plan-detail { font-size: 12px; color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+ * Image widget
+ * --------------------------------------------------------------------------- */
+
+.ws-img img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+.ws-img figcaption { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+/* ---------------------------------------------------------------------------
+ * Model3D widget — needs Google's <model-viewer> custom element loaded
+ * separately (e.g. https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js)
+ * --------------------------------------------------------------------------- */
+
+.ws-model3d { display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%; min-height: 200px; }
+.ws-model3d model-viewer { flex: 1; min-height: 200px; width: 100%; background: #f1f5f9; border-radius: 8px; }
+.ws-model3d-meta { font-size: 11px; color: var(--muted); text-align: center; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.ws-model3d-fallback {
+  display: grid; grid-template-columns: 64px 1fr; gap: 12px;
+  padding: 12px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.ws-model3d-poster {
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  background: #e2e8f0; border-radius: 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 0.04em;
+}
+.ws-model3d-poster img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.ws-model3d-name { font-size: 14px; font-weight: 600; }
+.ws-model3d-link { font-size: 11px; color: var(--accent); text-decoration: none; margin-top: 4px; display: inline-block; }
+.ws-model3d-link:hover { text-decoration: underline; }

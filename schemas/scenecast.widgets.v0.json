@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/daslabhq/scenecast/main/schemas/scenecast.widgets.v0.json",
+  "title": "scenecast WidgetData v0",
+  "description": "Canonical JSON shape that scenecast view authors return per size. The same JSON is rendered to HTML, Markdown, Text, and A2UI v0.9 envelope messages by render/{html,markdown,text,a2ui}.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/Icon" },
+    { "$ref": "#/$defs/Stack" },
+    { "$ref": "#/$defs/List" },
+    { "$ref": "#/$defs/Table" },
+    { "$ref": "#/$defs/Metric" },
+    { "$ref": "#/$defs/MetricGrid" },
+    { "$ref": "#/$defs/KeyValue" },
+    { "$ref": "#/$defs/Status" },
+    { "$ref": "#/$defs/Document" },
+    { "$ref": "#/$defs/Calendar" },
+    { "$ref": "#/$defs/Plan" },
+    { "$ref": "#/$defs/Empty" }
+  ],
+  "$defs": {
+    "Color": {
+      "type": "string",
+      "enum": ["blue", "green", "purple", "red", "orange", "yellow", "indigo", "pink", "teal", "gray"]
+    },
+    "Icon": {
+      "type": "object",
+      "required": ["type", "glyph", "color", "label"],
+      "properties": {
+        "type":  { "const": "icon" },
+        "glyph": { "type": "string", "description": "SVG markup (Heroicons, etc.)" },
+        "color": { "$ref": "#/$defs/Color" },
+        "label": { "type": "string" },
+        "badge": { "type": ["string", "number"] }
+      }
+    },
+    "Stack": {
+      "type": "object",
+      "required": ["type", "body"],
+      "properties": {
+        "type":   { "const": "stack" },
+        "header": {
+          "type": "object",
+          "required": ["title"],
+          "properties": {
+            "glyph": { "type": "string" },
+            "color": { "$ref": "#/$defs/Color" },
+            "title": { "type": "string" },
+            "meta":  { "type": "string" }
+          }
+        },
+        "body":   { "type": "array", "items": { "$ref": "#" } },
+        "layout": { "enum": ["vertical", "grid-2"] }
+      }
+    },
+    "ListItem": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "id":       { "type": "string", "description": "Stable identity. When present, renderers emit data-widget-anchor=\"item[<id>]\" so annotations and selections survive reorder/refilter." },
+        "title":    { "type": "string" },
+        "subtitle": { "type": "string" },
+        "detail":   { "type": "string" },
+        "badge":    { "type": "string" }
+      }
+    },
+    "List": {
+      "type": "object",
+      "required": ["type", "items"],
+      "properties": {
+        "type":       { "const": "list" },
+        "title":      { "type": "string" },
+        "items":      { "type": "array", "items": { "$ref": "#/$defs/ListItem" } },
+        "totalItems": { "type": "integer", "minimum": 0 },
+        "empty":      { "type": "string" },
+        "layout":     { "enum": ["vertical", "grid-2"] }
+      }
+    },
+    "Table": {
+      "type": "object",
+      "required": ["type", "columns", "rows"],
+      "properties": {
+        "type":      { "const": "table" },
+        "title":     { "type": "string" },
+        "columns":   { "type": "array", "items": { "type": "string" } },
+        "rows":      {
+          "type":  "array",
+          "items": { "type": "object", "additionalProperties": { "type": ["string", "number"] } }
+        },
+        "totalRows": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "Metric": {
+      "type": "object",
+      "required": ["type", "value", "label"],
+      "properties": {
+        "type":       { "const": "metric" },
+        "id":         { "type": "string", "description": "Stable identity inside a metric_grid. Anchor selector: metric[<id>]." },
+        "value":      { "type": ["string", "number"] },
+        "label":      { "type": "string" },
+        "unit":       { "type": "string" },
+        "trend":      { "enum": ["up", "down", "flat"] },
+        "trendValue": { "type": "string" }
+      }
+    },
+    "MetricGrid": {
+      "type": "object",
+      "required": ["type", "metrics"],
+      "properties": {
+        "type":    { "const": "metric_grid" },
+        "metrics": { "type": "array", "items": { "$ref": "#/$defs/Metric" } }
+      }
+    },
+    "KeyValue": {
+      "type": "object",
+      "required": ["type", "pairs"],
+      "properties": {
+        "type":  { "const": "key_value" },
+        "title": { "type": "string" },
+        "pairs": {
+          "type":  "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key":   { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "Status": {
+      "type": "object",
+      "required": ["type", "state", "message"],
+      "properties": {
+        "type":    { "const": "status" },
+        "state":   { "enum": ["ok", "warn", "fail"] },
+        "message": { "type": "string" },
+        "details": {
+          "type":  "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key":   { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "required": ["type", "body"],
+      "properties": {
+        "type":   { "const": "document" },
+        "title":  { "type": "string" },
+        "body":   { "type": "string" },
+        "byline": { "type": "string" },
+        "meta":   { "type": "string" }
+      }
+    },
+    "CalendarEventEntry": {
+      "type": "object",
+      "required": ["title", "startsAt"],
+      "properties": {
+        "id":        { "type": "string", "description": "Stable identity. Anchor selector: item[<id>]." },
+        "title":     { "type": "string" },
+        "startsAt":  { "type": "string", "format": "date-time" },
+        "endsAt":    { "type": "string", "format": "date-time" },
+        "location":  { "type": "string" },
+        "attendees": { "type": "array", "items": { "type": "string" } },
+        "allDay":    { "type": "boolean" }
+      }
+    },
+    "Calendar": {
+      "type": "object",
+      "required": ["type", "events"],
+      "properties": {
+        "type":   { "const": "calendar" },
+        "title":  { "type": "string" },
+        "events": { "type": "array", "items": { "$ref": "#/$defs/CalendarEventEntry" } }
+      }
+    },
+    "PlanStep": {
+      "type": "object",
+      "required": ["label", "status"],
+      "properties": {
+        "id":     { "type": "string", "description": "Stable identity. Anchor selector: step[<id>]." },
+        "label":  { "type": "string" },
+        "status": { "enum": ["pending", "in_progress", "completed", "failed", "skipped"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "Plan": {
+      "type": "object",
+      "required": ["type", "title", "steps"],
+      "properties": {
+        "type":  { "const": "plan" },
+        "title": { "type": "string" },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/PlanStep" } }
+      }
+    },
+    "Empty": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type":    { "const": "empty" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

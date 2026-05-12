@@ -1,0 +1,51 @@
+{
+  "name": "scenecast",
+  "version": "0.5.0",
+  "description": "Typed asset shapes + their canonical views for AI agents. The shared vocabulary providers and renderers use to talk about scene contents — JSON in, HTML / Markdown / Text / native widgets out.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./asset": "./src/asset.ts",
+    "./view": "./src/view.ts",
+    "./types": "./src/types/index.ts",
+    "./types/*": "./src/types/*.ts",
+    "./vendors/*": "./src/vendors/*.ts",
+    "./views/*": "./src/views/*.ts",
+    "./styles/widgets.css": "./src/styles/widgets.css",
+    "./styles/*": "./src/styles/*"
+  },
+  "files": [
+    "src",
+    "schemas",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bun test src/",
+    "build:gallery": "bun gallery/build.ts"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "llm",
+    "scene",
+    "asset",
+    "view",
+    "schema",
+    "json-schema",
+    "automationbench",
+    "rl",
+    "verifiers",
+    "scene-otel"
+  ],
+  "devDependencies": {
+    "@a2ui/lit": "0.9.3",
+    "@a2ui/web_core": "0.9.2",
+    "@types/bun": "latest",
+    "playwright": "^1.59.1",
+    "typescript": "^5.6.0"
+  }
+}

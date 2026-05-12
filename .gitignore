@@ -1,0 +1,9 @@
+node_modules/
+*.tsbuildinfo
+dist/
+.DS_Store
+bun.lock
+
+# Generated reader preview and iteration screenshots
+scripts/reader-preview.html
+scripts/screenshots/

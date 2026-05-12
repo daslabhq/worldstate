@@ -1,0 +1,823 @@
+/**
+ * Build the gallery — a single static HTML page showing every asset's
+ * default view rendered to HTML + Markdown side-by-side, using the
+ * built-in mockState() factories.
+ *
+ *   bun gallery/build.ts
+ *
+ * Output:
+ *   gallery/index.html
+ */
+
+import { writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { canonicalTypes } from "../src/index.js";
+import { escapeHtml, type ViewSize } from "../src/view.js";
+import type { AssetDef } from "../src/asset.js";
+import { renderA2UI, toA2UIJSONL } from "../src/render/a2ui.js";
+import { renderMCPApp }            from "../src/render/mcp_apps.js";
+import type { WidgetData } from "../src/widgets.js";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const OUT  = join(HERE, "index.html");
+
+const SIZES: ViewSize[] = ["icon", "small", "medium", "large", "xlarge"];
+
+interface SizeRender {
+  size:     ViewSize;
+  html:     string;
+  markdown: string;
+  json:     string;   // pretty-printed WidgetData (or "" if legacy)
+  a2ui:     string;   // A2UI v0.9 envelope as JSONL ("" if legacy)
+  a2uiMsgs: string;   // A2UI envelope as a JSON array string (for <a2ui-surface>)
+  mcp:      string;   // MCP Apps HTML bundle ("" if legacy)
+  tokens:   number;   // rough: markdown words / 0.75
+}
+
+interface Card {
+  name:     string;
+  type:     string;
+  desc:     string;
+  viewName: string;
+  extends:  string[];
+  iconHtml: string;     // for the home-screen mosaic at top
+  renders:  SizeRender[];
+}
+
+function approxTokens(s: string): number {
+  return Math.max(1, Math.round(s.split(/\s+/).filter(Boolean).length / 0.75));
+}
+
+function buildCards(group: Record<string, AssetDef<any>>): Card[] {
+  const out: Card[] = [];
+  for (const [name, asset] of Object.entries(group)) {
+    const state = asset.mockState!();
+    const renders: SizeRender[] = SIZES.map(size => {
+      const html     = asset.defaultView.toHTML(state, { size });
+      const markdown = asset.defaultView.toMarkdown(state, { size });
+      const widget   = asset.defaultView.toJSON?.(state, { size }) as WidgetData | undefined;
+      const json     = widget ? JSON.stringify(widget, null, 2) : "";
+      const surfaceId = `${name}-${size}`;
+      const a2uiMessages = widget ? renderA2UI(widget, { surfaceId }) : [];
+      const a2ui     = widget ? toA2UIJSONL(a2uiMessages) : "";
+      const a2uiMsgs = widget ? JSON.stringify(a2uiMessages) : "";
+      const mcp      = widget ? renderMCPApp(widget, {
+        uri:   `ui://scenecast/${surfaceId}`,
+        title: `${name} · ${size}`,
+      }).text : "";
+      return { size, html, markdown, json, a2ui, a2uiMsgs, mcp, tokens: approxTokens(markdown) };
+    });
+    const icon = renders.find(r => r.size === "icon")!;
+    out.push({
+      name,
+      type:     asset.type,
+      desc:     asset.description ?? "",
+      viewName: asset.defaultView.name,
+      extends:  asset.extends ?? [],
+      iconHtml: icon.html,
+      renders,
+    });
+  }
+  return out;
+}
+
+const canonicalCards = buildCards(canonicalTypes);
+
+const css = `
+:root {
+  --fg: #0f172a; --muted: #64748b; --border: #e2e8f0; --bg: #f8fafc;
+  --accent: #6366f1; --amber: #f59e0b; --green: #10b981; --red: #ef4444;
+  --card-bg: #ffffff;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--fg); background: var(--bg); }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+header { border-bottom: 1px solid var(--border); background: white; }
+.header-inner { max-width: 1400px; margin: 0 auto; padding: 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap: wrap; }
+.brand { font-size: 22px; font-weight: 700; }
+.brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+.subtitle { color: var(--muted); margin-top: 4px; font-size: 14px; }
+.gh-link { font-size: 14px; color: var(--muted); text-decoration: none; }
+.gh-link:hover { color: var(--fg); text-decoration: underline; }
+main { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+.intro { background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 32px; }
+.intro h2 { margin: 0 0 8px; font-size: 18px; }
+.intro p { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.intro code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+.toc a { padding: 4px 10px; background: var(--bg); border-radius: 999px; font-size: 12px; text-decoration: none; color: var(--fg); border: 1px solid var(--border); }
+.toc a:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.toc-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-left: 4px; margin-right: 4px; }
+.toc-section:first-child { margin-left: 0; }
+.section-h { margin-top: 36px; margin-bottom: 4px; font-size: 20px; }
+.section-p { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+.ext-pill { background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ----- iOS home-screen mosaic ----- */
+.mosaic { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 28px; padding: 36px 40px; margin-bottom: 36px; }
+.mosaic-title { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+.mosaic-sub { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 28px; max-width: 720px; line-height: 1.5; }
+.mosaic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px 22px; }
+@media (max-width: 800px) { .mosaic-grid { grid-template-columns: repeat(3, 1fr); } }
+.mosaic-tile { display: block; text-decoration: none; }
+.mosaic-tile .ws-app-name { color: rgba(255,255,255,0.85); }
+
+/* ----- App icon (size=icon) ----- */
+.ws-app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ws-app-tile {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;            /* never compress — bug bait otherwise */
+  /* iOS squircle approximation — superellipse-ish via large border-radius */
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 1px 2px rgba(255,255,255,0.15) inset;
+  transition: transform 0.12s ease;
+}
+.mosaic-tile { display: block; text-decoration: none; }
+.mosaic-tile .ws-app-tile { width: 78px; height: 78px; border-radius: 22px; }
+.mosaic-tile:hover .ws-app-tile { transform: translateY(-2px); }
+.ws-app-tile--chip { width: 28px; height: 28px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.ws-app-glyph { width: 50%; height: 50%; display: flex; align-items: center; justify-content: center; }
+.ws-app-glyph svg { width: 100%; height: 100%; }
+.ws-app-tile--chip .ws-app-glyph { width: 60%; height: 60%; }
+.ws-app-name { font-size: 11px; color: var(--fg); font-weight: 500; line-height: 1.2; flex-shrink: 0; }
+.ws-app-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 20px; height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.mosaic-tile .ws-app-badge { border-color: #1e293b; }
+
+/* ----- Small widget (2×2) — Apple systemSmall vibe ----- */
+.ws-small {
+  padding: 16px;
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.ws-small-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 12px; }
+.ws-small-head .ws-app-tile--chip { flex-shrink: 0; }
+.ws-small-num { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 12px; }
+.ws-small-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.ws-small-title { font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--fg); }
+.ws-small-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* ----- Size strip — true iOS WidgetKit aspect ratios + format tabs ----- */
+.format-tabs {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.format-tabs button {
+  appearance: none; border: none; background: transparent;
+  padding: 5px 14px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.format-tabs button:hover { color: var(--fg); }
+.format-tabs button.active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.size-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 22px;
+  margin-top: 4px;
+  align-items: start;
+  padding-bottom: 8px;
+}
+.size-strip .size-cell-wrap { flex-shrink: 0; }
+.size-strip .size-cell-wrap.icon-w   { width: 110px; }
+.size-strip .size-cell-wrap.small-w  { width: 158px; }
+.size-strip .size-cell-wrap.medium-w { width: 329px; }
+.size-strip .size-cell-wrap.large-w  { width: 329px; }
+.size-strip .size-cell-wrap.xlarge-w { width: 658px; }
+.size-cell.xlarge { aspect-ratio: 2 / 1; } /* 8×4 */
+.size-cell-wrap { display: flex; flex-direction: column; gap: 6px; }
+.size-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); font-weight: 600;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 4px;
+}
+.size-tokens { color: var(--accent); font-weight: 500; }
+.size-cell {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.size-cell.icon  { aspect-ratio: 1; }      /* 1×1 — square */
+.size-cell.small { aspect-ratio: 1; }      /* 2×2 — square */
+.size-cell.medium { aspect-ratio: 2 / 1; } /* 4×2 — wide */
+.size-cell.large { aspect-ratio: 1; }      /* 4×4 — square */
+.cell-html, .cell-md, .cell-json, .cell-a2ui, .cell-mcp {
+  position: absolute; inset: 12px;
+  overflow: hidden;
+}
+.cell-html { display: flex; align-items: center; justify-content: center; }
+.cell-html > * { width: 100%; max-height: 100%; overflow: hidden; }
+/* Icon cells: badge sits at top:-4px right:-4px outside .ws-app-tile, so the
+   icon container must not clip it. The size-cell still clips at its own
+   border (which has 12px inset to spare). */
+.size-cell.icon { overflow: visible; }
+.size-cell.icon .cell-html { overflow: visible; }
+.size-cell.icon .cell-html > * { width: auto; overflow: visible; }
+.cell-md, .cell-json, .cell-a2ui, .cell-mcp {
+  display: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px; line-height: 1.55;
+  white-space: pre-wrap; word-break: break-all;
+  color: var(--fg);
+  overflow: auto;
+}
+.cell-json  { color: #475569; }
+.cell-a2ui  { color: #1e293b; }
+.cell-mcp   { color: #334155; }
+.size-strip[data-format="markdown"] .cell-html  { display: none; }
+.size-strip[data-format="markdown"] .cell-md    { display: block; }
+.size-strip[data-format="json"]     .cell-html  { display: none; }
+.size-strip[data-format="json"]     .cell-json  { display: block; }
+.size-strip[data-format="a2ui"]     .cell-html  { display: none; }
+.size-strip[data-format="a2ui"]     .cell-a2ui  { display: block; }
+.size-strip[data-format="mcp"]      .cell-html  { display: none; }
+.size-strip[data-format="mcp"]      .cell-mcp   { display: block; }
+
+/* ---------- live A2UI render column (top panel) ---------- */
+.col-a2ui {
+  position: relative;
+}
+.a2ui-host {
+  display: block;
+  min-height: 240px;
+  max-height: 560px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.a2ui-host[data-mounted="0"]::after {
+  content: "loading @a2ui/lit from esm.sh…";
+  display: block; color: var(--muted); font-size: 12px;
+  font-style: italic;
+}
+.a2ui-host[data-mounted="error"]::after {
+  content: attr(data-error);
+  display: block; color: var(--red); font-size: 12px;
+}
+.a2ui-attribution {
+  font-size: 11px; color: var(--muted); margin-top: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.a2ui-attribution code { background: #eef2ff; padding: 1px 6px; border-radius: 4px; font-size: 11px; color: var(--accent); }
+
+/* ---------- "Compatible renderers" badge row ---------- */
+.compat-row {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin-top: 12px; font-size: 12px; color: var(--muted);
+}
+.compat-row .label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 600; margin-right: 4px;
+}
+.compat-row a {
+  background: var(--bg); padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--border); text-decoration: none; color: var(--fg);
+  font-size: 11.5px; font-weight: 500;
+}
+.compat-row a:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ---------- "Open in…" buttons on each card ---------- */
+.open-in {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+}
+.open-in button, .open-in a {
+  appearance: none; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 10px;
+  font-size: 11px; font-weight: 500; color: var(--fg);
+  cursor: pointer; text-decoration: none;
+  font-family: inherit;
+}
+.open-in button:hover, .open-in a:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.open-in .copied { background: #ecfdf5; color: #065f46; border-color: #10b981; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 28px; overflow: hidden; }
+.card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.card-name { font-size: 18px; font-weight: 600; }
+.card-meta { font-size: 12px; color: var(--muted); }
+.card-meta .pill { background: #eef2ff; color: var(--accent); padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+.card-desc { color: var(--muted); font-size: 14px; margin-top: 4px; flex-basis: 100%; }
+.split { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
+@media (max-width: 1400px) { .split { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px)  { .split { grid-template-columns: 1fr; } }
+.col { padding: 20px; min-width: 0; }
+.col + .col { border-left: 1px solid var(--border); }
+@media (max-width: 1400px) {
+  .col + .col { border-left: 1px solid var(--border); }
+  .col:nth-child(3), .col:nth-child(4) { border-top: 1px solid var(--border); }
+  .col:nth-child(3) { border-left: none; }
+}
+@media (max-width: 700px) {
+  .col + .col { border-left: none; border-top: 1px solid var(--border); }
+}
+
+/* ---------- live MCP Apps render column (top panel) ---------- */
+.mcp-host {
+  display: block;
+  width: 100%;
+  min-height: 240px;
+  max-height: 560px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  /* iframe content is sandboxed; visual chrome lives here. */
+}
+.mcp-host iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  border: 0;
+  border-radius: 8px;
+  background: white;
+}
+.mcp-attribution {
+  font-size: 11px; color: var(--muted); margin-top: 8px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.mcp-attribution code { background: #fef3c7; padding: 1px 6px; border-radius: 4px; font-size: 11px; color: #92400e; }
+.col-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.col-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.md-pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; overflow-x: auto; max-height: 560px; }
+.md-pre .h { color: var(--accent); }
+
+/* GFM tables rendered inline by mdSyntax — neutralize the monospace +
+   pre-wrap of the surrounding markdown cell so the table reads as a table. */
+.md-table {
+  border-collapse: collapse;
+  font-family: ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  white-space: normal;
+  word-break: normal;
+  font-size: 11px;
+  margin: 4px 0;
+  width: 100%;
+}
+.md-table th, .md-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.md-table th { color: var(--muted); font-weight: 500; background: var(--bg); }
+.md-table tr:last-child td { border-bottom: none; }
+.md-pre .md-table { font-size: 12px; }
+
+/* ----- view primitives ----- */
+.ws-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.ws-empty { color: var(--muted); font-style: italic; padding: 12px; }
+.ws-more { color: var(--muted); font-style: italic; font-size: 12px; padding: 6px 0; }
+
+.ws-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ws-table th { text-align: left; padding: 8px 10px; background: var(--bg); border-bottom: 1px solid var(--border); font-weight: 500; color: var(--muted); font-size: 12px; }
+.ws-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.ws-table tr:last-child td { border-bottom: none; }
+
+.ws-metric { text-align: left; padding: 14px; background: var(--bg); border-radius: 8px; }
+.ws-metric-value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.ws-metric-value .ws-unit { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+.ws-metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.ws-delta { font-size: 12px; margin-top: 6px; }
+.ws-up { color: var(--green); }
+.ws-down { color: var(--red); }
+.ws-flat { color: var(--muted); }
+
+.ws-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.ws-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+
+.ws-list ul { margin: 0; padding: 0; list-style: none; }
+.ws-list--grid-2 ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+}
+.ws-list--grid-2 .ws-li {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+.ws-list--grid-2 .ws-li:last-child { border-bottom: 1px solid var(--border); }
+.ws-li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.ws-li:last-child { border-bottom: none; }
+
+/* Stack widget — header bar + body content */
+.ws-stack { display: flex; flex-direction: column; gap: 10px; }
+.ws-stack-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600;
+}
+.ws-stack-head .ws-app-tile--chip { flex-shrink: 0; }
+.ws-stack-title { font-weight: 600; }
+.ws-stack-meta { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: auto; }
+.ws-stack--grid-2 .ws-stack-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ws-li-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ws-li-title { font-size: 14px; font-weight: 500; }
+.ws-li-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.ws-li-detail { font-size: 12.5px; color: #475569; margin-top: 4px; }
+.ws-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--accent); color: white; padding: 2px 8px; border-radius: 999px; }
+
+.ws-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.ws-kv-row:last-child { border-bottom: none; }
+.ws-kv-key { color: var(--muted); }
+.ws-kv-val { font-weight: 500; }
+
+.ws-cal { display: flex; flex-direction: column; gap: 8px; }
+.ws-cal-row { display: grid; grid-template-columns: 220px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+.ws-cal-row:last-child { border-bottom: none; }
+.ws-cal-time { color: var(--muted); font-size: 12.5px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.ws-cal-title { font-size: 14px; font-weight: 500; }
+.ws-cal-loc, .ws-cal-att { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.ws-status { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 8px; }
+.ws-status-ok { background: #ecfdf5; color: #065f46; }
+.ws-status-warn { background: #fffbeb; color: #78350f; }
+.ws-status-fail { background: #fef2f2; color: #7f1d1d; }
+.ws-status-icon { font-size: 22px; font-weight: 700; }
+.ws-status-msg { font-weight: 500; font-size: 14px; }
+.ws-status-details { font-size: 12px; margin-top: 6px; }
+
+.ws-doc-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.ws-doc-byline, .ws-doc-meta { color: var(--muted); font-size: 12.5px; }
+.ws-doc-body { margin-top: 10px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.ws-doc-stats { color: var(--muted); font-size: 11px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.ws-img img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+.ws-img figcaption { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+/* ----- 3D model widget ----- */
+.ws-model3d {
+  display: flex; flex-direction: column; gap: 6px;
+  width: 100%; height: 100%;
+  min-height: 200px;
+}
+.ws-model3d model-viewer {
+  flex: 1; min-height: 200px;
+  width: 100%;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.ws-model3d-meta {
+  font-size: 11px; color: var(--muted); text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.ws-model3d-fallback {
+  display: grid; grid-template-columns: 64px 1fr; gap: 12px;
+  padding: 12px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.ws-model3d-poster {
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  background: #e2e8f0; border-radius: 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px; font-weight: 700; color: #475569;
+  letter-spacing: 0.04em;
+}
+.ws-model3d-poster img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.ws-model3d-name { font-size: 14px; font-weight: 600; }
+.ws-model3d-link { font-size: 11px; color: var(--accent); text-decoration: none; margin-top: 4px; display: inline-block; }
+.ws-model3d-link:hover { text-decoration: underline; }
+
+.ws-plan-row { display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 4px 0; }
+.ws-plan-mark { color: var(--muted); font-size: 16px; }
+.ws-plan-completed .ws-plan-mark { color: var(--green); }
+.ws-plan-in_progress .ws-plan-mark { color: var(--accent); }
+.ws-plan-failed .ws-plan-mark { color: var(--red); }
+.ws-plan-label { font-size: 13px; }
+.ws-plan-detail { font-size: 12px; color: var(--muted); }
+
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
+footer a { color: var(--muted); }
+`;
+
+const mdSyntax = (md: string) => {
+  // Render GFM pipe tables first — match a header row, the --- divider,
+  // and one-or-more body rows. Operate on the un-escaped source so we keep
+  // markdown semantics, then escape per-cell inside mdTableBlock callers.
+  const tableRe = /(^\|.+\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|.+\|\s*\n?)+)/gm;
+  const tables: string[] = [];
+  const PLACEHOLDER = "\x00TBL";
+  const withMarkers = md.replace(tableRe, (block) => {
+    // escape cell contents, but keep the table structure
+    const rows = block.trim().split("\n");
+    const escRow = (line: string) =>
+      line.replace(/^\s*\|/, "").replace(/\|\s*$/, "")
+          .split("|").map(c => escapeHtml(c.trim()));
+    const head = escRow(rows[0]!);
+    const body = rows.slice(2).map(escRow);
+    const thead = `<thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+    const tbody = `<tbody>${body.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+    tables.push(`<table class="md-table">${thead}${tbody}</table>`);
+    return `${PLACEHOLDER}${tables.length - 1}${PLACEHOLDER}`;
+  });
+
+  // Escape + lightweight inline markdown on everything outside tables.
+  const rendered = escapeHtml(withMarkers)
+    .replace(/^#{1,6} (.+)$/gm, '<span class="h">$&</span>')
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '• $1');
+
+  // Splice the rendered <table>s back in.
+  return rendered.replace(new RegExp(`${PLACEHOLDER}(\\d+)${PLACEHOLDER}`, "g"), (_, i) => tables[Number(i)]!);
+};
+
+const sizeCell = (r: SizeRender) => `
+  <div class="size-cell-wrap ${r.size}-w">
+    <div class="size-label">
+      <span>${r.size}</span>
+      <span class="size-tokens">~${r.tokens} tokens</span>
+    </div>
+    <div class="size-cell ${r.size}">
+      <div class="cell-html">${r.html}</div>
+      <div class="cell-md">${mdSyntax(r.markdown)}</div>
+      <div class="cell-json">${escapeHtml(r.json || "// legacy view (no JSON form)")}</div>
+      <div class="cell-a2ui">${escapeHtml(r.a2ui || "// legacy view (no A2UI form)")}</div>
+      <div class="cell-mcp">${escapeHtml(r.mcp  || "<!-- legacy view (no MCP Apps bundle) -->")}</div>
+    </div>
+  </div>
+`;
+
+const cardHtml = (c: Card) => {
+  const medium = c.renders.find(r => r.size === "medium")!;
+  // a2uiMsgs and mcp bundle live in attributes; use HTML-attribute escaping.
+  const attrEscape = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const a2uiAttr = medium.a2uiMsgs ? attrEscape(medium.a2uiMsgs) : "";
+  const mcpAttr  = medium.mcp      ? attrEscape(medium.mcp)      : "";
+  return `
+  <section class="card" id="${c.name.toLowerCase()}">
+    <div class="card-head">
+      <div>
+        <div class="card-name">${escapeHtml(c.name)}</div>
+        <div class="card-meta">
+          <span class="pill">${escapeHtml(c.type)}</span>
+          ·
+          view: <span class="mono">${escapeHtml(c.viewName)}</span>
+          ${c.extends.length ? `· extends: ${c.extends.map(e => `<span class="mono ext-pill">${escapeHtml(e)}</span>`).join(" ")}` : ""}
+        </div>
+        ${c.desc ? `<div class="card-desc">${escapeHtml(c.desc)}</div>` : ""}
+        <div class="open-in" data-open-in>
+          <button data-action="copy-a2ui" data-jsonl="${escapeHtml(medium.a2ui)}">Copy A2UI JSONL</button>
+          <button data-action="copy-mcp"  data-html="${escapeHtml(medium.mcp)}">Copy MCP Apps bundle</button>
+          <button data-action="copy-json" data-json="${escapeHtml(medium.json)}">Copy WidgetData JSON</button>
+          <a href="https://a2ui-composer.ag-ui.com/" target="_blank" rel="noreferrer noopener">A2UI Composer ↗</a>
+          <a href="https://a2ui-composer.ag-ui.com/theater" target="_blank" rel="noreferrer noopener">A2UI Theater ↗</a>
+          <a href="https://docs.openclaw.ai/platforms/mac/canvas" target="_blank" rel="noreferrer noopener">OpenClaw Canvas ↗</a>
+          <a href="https://developers.openai.com/apps-sdk/" target="_blank" rel="noreferrer noopener">ChatGPT Apps SDK ↗</a>
+          <a href="https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/" target="_blank" rel="noreferrer noopener">MCP Apps in Claude ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="col-label">HTML · medium</div>
+        ${medium.html}
+      </div>
+      <div class="col">
+        <div class="col-label">Markdown · medium <span style="color:var(--accent);font-weight:500">~${medium.tokens} tokens</span></div>
+        <pre class="md-pre">${mdSyntax(medium.markdown)}</pre>
+      </div>
+      <div class="col col-a2ui">
+        <div class="col-label">A2UI · medium · rendered by <span class="mono">@a2ui/lit</span></div>
+        ${a2uiAttr
+          ? `<a2ui-surface class="a2ui-host" data-mounted="0" data-messages="${a2uiAttr}"></a2ui-surface>`
+          : `<div class="a2ui-host" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-style:italic">legacy view — no A2UI form</div>`}
+        <div class="a2ui-attribution">
+          live render via <code>@a2ui/lit</code> · catalog <code>basic</code> · v0.9
+        </div>
+      </div>
+      <div class="col col-mcp">
+        <div class="col-label">MCP Apps · medium · sandboxed iframe</div>
+        ${mcpAttr
+          ? `<div class="mcp-host"><iframe sandbox="allow-scripts" loading="lazy" srcdoc="${mcpAttr}" title="MCP Apps · ${escapeHtml(c.name)}"></iframe></div>`
+          : `<div class="mcp-host" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-style:italic">legacy view — no MCP Apps bundle</div>`}
+        <div class="mcp-attribution">
+          how Claude/ChatGPT/VS Code render this · MIME <code>text/html;profile=mcp-app</code>
+        </div>
+      </div>
+    </div>
+    <div class="card-head" style="border-top:1px solid var(--border);border-bottom:none;background:var(--bg)">
+      <div class="col-label">All sizes</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="format-tabs" data-tabs>
+        <button data-format="html" class="active">HTML</button>
+        <button data-format="markdown">Markdown</button>
+        <button data-format="json">JSON</button>
+        <button data-format="a2ui">A2UI</button>
+        <button data-format="mcp">MCP Apps</button>
+      </div>
+      <div class="size-strip" data-format="html">
+        ${c.renders.map(sizeCell).join("")}
+      </div>
+    </div>
+  </section>
+`;
+};
+
+const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>scenecast · view gallery</title>
+  <!-- Google's <model-viewer> for glb/gltf/usdz cells. Loaded once at the
+       page level — multiple ES module imports of the same URL are deduped. -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <style>${css}</style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="brand">scenecast <small>· view gallery</small></div>
+        <div class="subtitle">One asset definition · five rendering targets · both agent-UI standards covered.</div>
+      </div>
+      <a class="gh-link" href="https://github.com/daslabhq/scenecast">GitHub →</a>
+    </div>
+  </header>
+  <main>
+    <div class="mosaic">
+      <div class="mosaic-title">An agent home screen for canonical types</div>
+      <div class="mosaic-sub">Each tile is the <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;color:#fff">icon</code> rendering of one asset's defaultView — exactly what an iPhone home-screen widget would look like at 1×1 size. Click an icon to jump to its full size strip.</div>
+      <div class="mosaic-grid">
+        ${canonicalCards.map(c => `<a class="mosaic-tile" href="#${c.name.toLowerCase()}" style="text-decoration:none">${c.iconHtml}</a>`).join("")}
+      </div>
+    </div>
+
+    <div class="intro">
+      <h2>What you're looking at</h2>
+      <p>Each card below is one <code>defineAsset()</code> declaration from the scenecast library. Every asset comes with a default <code>view</code> that renders state at <b>five sizes</b> (icon · small · medium · large · xlarge — modeled on Apple WidgetKit + Daslab's <code>WidgetSize</code>) and <b>five formats</b> (HTML · Markdown · Text · <a href="https://a2ui.org" target="_blank" rel="noreferrer noopener">A2UI v0.9</a> · <a href="https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/" target="_blank" rel="noreferrer noopener">MCP Apps</a>).</p>
+      <p>Same definition. Different consumers. Markdown is typically <b>3–5× cheaper in tokens</b> than dumping raw JSON; the icon view is ~95% cheaper. The two agent-UI standards that emerged in 2026 split the world: <b>A2UI</b> (Google, native-declarative — Lit/React/Flutter/OpenClaw) and <b>MCP Apps</b> (Anthropic + OpenAI, sandboxed iframe — Claude/ChatGPT/VS Code/Goose/Cursor). scenecast emits both. Every card shows our own HTML render, Google's reference <code>@a2ui/lit</code> renderer, and the same widget rendered inside a sandboxed MCP-Apps iframe — all consuming the exact same WidgetData JSON.</p>
+      <p>Vendor implementations (Gmail, Slack, Salesforce, SAP S/4HANA, …) ship from benchmark-scoped repos like <a href="https://github.com/daslabhq/scenebench">scenebench</a> as scenecast extensions for that benchmark's domain. Each benchmark owns its vendor types, scrubbable + scored at <a href="https://daslab.dev">daslab.dev</a>.</p>
+      <div class="compat-row">
+        <span class="label">A2UI camp</span>
+        <a href="https://a2ui.org/reference/renderers/" target="_blank" rel="noreferrer noopener">@a2ui/lit</a>
+        <a href="https://a2ui.org/reference/renderers/" target="_blank" rel="noreferrer noopener">@a2ui/react</a>
+        <a href="https://a2ui.org/reference/renderers/" target="_blank" rel="noreferrer noopener">@a2ui/angular</a>
+        <a href="https://docs.flutter.dev/ai/genui" target="_blank" rel="noreferrer noopener">Flutter GenUI</a>
+        <a href="https://docs.openclaw.ai/platforms/mac/canvas" target="_blank" rel="noreferrer noopener">OpenClaw Canvas</a>
+        <a href="https://github.com/google/adk-web" target="_blank" rel="noreferrer noopener">ADK Web</a>
+        <a href="https://www.copilotkit.ai/" target="_blank" rel="noreferrer noopener">CopilotKit / AG-UI</a>
+        <a href="https://json-render.dev/docs/a2ui" target="_blank" rel="noreferrer noopener">json-render</a>
+      </div>
+      <div class="compat-row">
+        <span class="label">MCP Apps camp</span>
+        <a href="https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/" target="_blank" rel="noreferrer noopener">Claude (MCP Apps)</a>
+        <a href="https://developers.openai.com/apps-sdk/" target="_blank" rel="noreferrer noopener">ChatGPT Apps SDK</a>
+        <a href="https://code.visualstudio.com/" target="_blank" rel="noreferrer noopener">VS Code</a>
+        <a href="https://block.github.io/goose/" target="_blank" rel="noreferrer noopener">Goose</a>
+        <a href="https://www.cursor.com/" target="_blank" rel="noreferrer noopener">Cursor</a>
+      </div>
+      <div class="toc">
+        <span class="toc-section">Canonical:</span>
+        ${canonicalCards.map(c => `<a href="#${c.name.toLowerCase()}">${c.name}</a>`).join("")}
+      </div>
+    </div>
+
+    <h2 class="section-h">Canonical types</h2>
+    <p class="section-p">Abstract primitives. Use directly, or as targets for vendor extensions in benchmark repos.</p>
+    ${canonicalCards.map(cardHtml).join("")}
+  </main>
+  <footer>
+    scenecast · MIT · <a href="https://github.com/daslabhq/scenecast">github.com/daslabhq/scenecast</a> · ${canonicalCards.length} canonical types
+  </footer>
+  <script type="module">
+    // ----- Format tabs — flip data-format on the strip below each tabs control
+    document.querySelectorAll('.format-tabs[data-tabs]').forEach(tabs => {
+      tabs.addEventListener('click', e => {
+        const target = e.target;
+        if (!(target instanceof HTMLButtonElement)) return;
+        const format = target.dataset.format;
+        if (!format) return;
+        const strip = tabs.nextElementSibling;
+        if (strip && strip.classList.contains('size-strip')) {
+          strip.setAttribute('data-format', format);
+        }
+        tabs.querySelectorAll('button').forEach(b => {
+          b.classList.toggle('active', b.dataset.format === format);
+        });
+      });
+    });
+
+    // ----- "Open in…" buttons — copy JSONL / WidgetData JSON to clipboard
+    document.querySelectorAll('.open-in [data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
+        const payload =
+          action === 'copy-a2ui' ? btn.dataset.jsonl :
+          action === 'copy-mcp'  ? btn.dataset.html  :
+          action === 'copy-json' ? btn.dataset.json  : '';
+        if (!payload) return;
+        try {
+          await navigator.clipboard.writeText(payload);
+          const orig = btn.textContent;
+          btn.classList.add('copied');
+          btn.textContent = 'Copied ✓';
+          setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1400);
+        } catch (err) {
+          btn.textContent = 'Copy failed — see console';
+          console.error(err);
+        }
+      });
+    });
+
+    // ----- Live A2UI render — load @a2ui/web_core + @a2ui/lit from esm.sh and
+    //       feed each <a2ui-surface> the same WidgetData our HTML column shows.
+    //       Shared module loads once; each host gets its own MessageProcessor.
+    let a2uiInit;
+    async function loadA2UI() {
+      if (a2uiInit) return a2uiInit;
+      a2uiInit = (async () => {
+        const [core, lit, md] = await Promise.all([
+          import('https://esm.sh/@a2ui/web_core@0.9.2/v0_9'),
+          import('https://esm.sh/@a2ui/lit@0.9.3/v0_9'),
+          import('https://esm.sh/@a2ui/markdown-it@0.0.4'),
+        ]);
+        // Provide a MarkdownRenderer via Lit context. Without it, the basic
+        // catalog Text component prepends "## " etc. for variant headings
+        // and (with no renderer) shows them as literal text.
+        document.addEventListener('context-request', (e) => {
+          if (e.context === lit.Context.markdown) {
+            e.stopPropagation();
+            e.callback(md.renderMarkdown);
+          }
+        }, { capture: false });
+        return { MessageProcessor: core.MessageProcessor, basicCatalog: lit.basicCatalog };
+      })();
+      return a2uiInit;
+    }
+
+    async function mountSurface(host) {
+      if (host.dataset.mounted === '1') return;
+      try {
+        const { MessageProcessor, basicCatalog } = await loadA2UI();
+        const messages = JSON.parse(host.dataset.messages || '[]');
+        const processor = new MessageProcessor([basicCatalog]);
+        processor.onSurfaceCreated(s => { host.surface = s; });
+        processor.processMessages(messages);
+        host.dataset.mounted = '1';
+      } catch (err) {
+        host.dataset.mounted = 'error';
+        host.dataset.error = String(err && err.message || err);
+        console.error('A2UI mount failed:', err);
+      }
+    }
+
+    // Lazy mount on first scroll into view to keep initial paint fast.
+    const io = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          mountSurface(e.target);
+          io.unobserve(e.target);
+        }
+      }
+    }, { rootMargin: '200px' });
+    document.querySelectorAll('a2ui-surface[data-messages]').forEach(el => io.observe(el));
+  </script>
+</body>
+</html>
+`;
+
+writeFileSync(OUT, html);
+console.log(`✓ wrote gallery → ${OUT.replace(process.cwd(), "")}  (${canonicalCards.length} canonical types, ${html.length.toLocaleString()} bytes)`);
