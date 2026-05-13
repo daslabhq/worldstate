@@ -114,7 +114,9 @@ function nextId(ctx: BuildCtx): string {
 /** Emit a component with a fresh id; returns the id. */
 function emit(ctx: BuildCtx, c: Omit<A2UIComponent, "id">, idOverride?: string): string {
   const id = idOverride ?? nextId(ctx);
-  ctx.out.push({ id, ...c });
+  // The spread narrows fine at runtime; TS just can't prove `{id, ...c}` keeps
+  // the discriminator coherent across the union, so assert.
+  ctx.out.push({ id, ...c } as A2UIComponent);
   return id;
 }
 

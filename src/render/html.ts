@@ -8,7 +8,7 @@
 import type {
   WidgetData, IconWidget, StackWidget, ListWidget, TableWidget,
   MetricWidget, MetricGridWidget, KeyValueWidget, StatusWidget,
-  DocumentWidget, CalendarWidget, PlanWidget, EmptyWidget,
+  DocumentWidget, CalendarWidget, PlanWidget, PlanStep, EmptyWidget,
   Model3DWidget,
 } from "../widgets.js";
 import { escapeHtml, truncate } from "../view.js";

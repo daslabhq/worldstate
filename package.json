@@ -10,10 +10,12 @@
     ".": "./src/index.ts",
     "./asset": "./src/asset.ts",
     "./view": "./src/view.ts",
+    "./widgets": "./src/widgets.ts",
     "./types": "./src/types/index.ts",
     "./types/*": "./src/types/*.ts",
     "./vendors/*": "./src/vendors/*.ts",
     "./views/*": "./src/views/*.ts",
+    "./render/*": "./src/render/*.ts",
     "./styles/widgets.css": "./src/styles/widgets.css",
     "./styles/*": "./src/styles/*"
   },
