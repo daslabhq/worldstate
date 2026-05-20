@@ -179,17 +179,30 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["id", "title", "cron", "prompt"],
+            "required": ["id", "cron", "prompt"],
             "additionalProperties": false,
             "properties": {
-              "id":         { "type": "string", "pattern": "^[a-z0-9_-]+$" },
-              "title":      { "type": "string" },
-              "cron":       { "type": "string" },
-              "prompt":     { "type": "string" },
-              "assetIds":   { "type": "array", "items": { "type": "string" } },
-              "runAs":      { "type": "string", "pattern": "^[a-z0-9_-]+$", "description": "Role slug to scope the run's layer permissions. References a `roles[]` slug or built-in (owner|editor|viewer). Defaults to owner-attribution." },
-              "enabled":    { "type": "boolean", "default": true },
-              "checks":     { "type": "array", "items": { "$ref": "#/$defs/check" } }
+              "id":      { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+              "title":   { "type": "string", "description": "Optional display name. Defaults to `id` titlecased." },
+              "cron":    { "type": "string", "description": "Standard 5-field cron expression with optional `TZ=<IANA>` prefix. Examples: `0 6 * * *` (UTC daily 06:00), `TZ=Europe/Berlin 0 6 * * *` (Berlin local time, DST-aware). The cron string is the recurrence rule — `next_run_at` is derived on the DB row, never duplicated here." },
+              "prompt":  { "type": "string", "description": "The user-input prompt that fires on each tick. Lives directly on the schedule template — no separate phantom prompt_user call. The scheduler reads this at fire time and seeds a real prompt_user call on the freshly-minted child run." },
+              "anchors": {
+                "type": "array",
+                "description": "Optional explicit input attachments. Each entry is an `AnchorRef` (scenecast canonical shape: `{ asset_id, anchor? }`). When omitted/empty, the scheduled run inherits the scene's default context (all visible assets). When present, behaves like a user pre-selecting these elements in the iOS composer before tapping Run — identical wire format. `asset_id` may be a blueprint-local handle (resolved by the applier) or a real db id.",
+                "items": {
+                  "type": "object",
+                  "required": ["asset_id"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "asset_id": { "type": "string" },
+                    "anchor":   { "type": "string", "description": "Optional sub-element selector in scenecast anchor grammar: `item[<id>]`, `row[<idx>|<id>]`, `field[<key>]`, `step[<id>]`, `metric[<id>]`, `zone[<name>]`, `object[<id>]`, `surface[<id>]`, `point[<x>,<y>(,<z>)]`. Omit to address the whole asset." }
+                  }
+                }
+              },
+              "runAs":   { "type": "string", "pattern": "^[a-z0-9_-]+$", "description": "Role slug to scope the run's layer permissions. References a `roles[]` slug or built-in (owner|editor|viewer). Defaults to the scene's owner-attribution." },
+              "tools":   { "type": "object", "additionalProperties": false, "properties": { "allow": { "type": "array", "items": { "type": "string" } }, "deny": { "type": "array", "items": { "type": "string" } } }, "description": "Optional override of the scene's tool allow/deny. Omit to inherit scene defaults." },
+              "enabled": { "type": "boolean", "default": true, "description": "Cron only fires when true. Use false to pause without deleting the template." },
+              "checks":  { "type": "array", "items": { "$ref": "#/$defs/check" }, "description": "Per-run success criteria evaluated against the completed run." }
             }
           }
         },
@@ -250,11 +263,17 @@
             "required": ["role"],
             "additionalProperties": false,
             "oneOf": [
+              { "required": ["principal"] },
               { "required": ["email"] },
               { "required": ["device"] }
             ],
             "properties": {
-              "email":  { "type": "string", "format": "email" },
+              "principal": {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]+:.+$",
+                "description": "Canonical principal in '<provider>:<identity>' form. Examples: 'github:mirkokiefer', 'github:315252' (numeric id, rename-proof), 'email:foo@bar.com', 'google:<sub>', 'apple:<sub>'. The provider prefix is the auth-provider slug; identity is unique within that provider. Use this form for new blueprints — it scales to any auth provider including asset-provider-auth (e.g. 'slack:U07ABC'). `email` and `device` below remain as legacy aliases."
+              },
+              "email":  { "type": "string", "format": "email", "description": "Legacy alias for principal 'email:<addr>'. Resolves only against email-auth users." },
               "device": { "type": "string", "pattern": "^[a-z0-9_-]+$", "description": "Device slot slug. Provisioning binds physical devices to slots out-of-band (e.g. eFuse pubkey registration)." },
               "role":   { "type": "string", "pattern": "^[a-z0-9_-]+$", "examples": ["owner", "editor", "viewer"], "description": "Built-in (owner|editor|viewer) or a custom role slug declared in `roles[]`. Anonymous public access is declared on the role itself via `roles[i].public: true`, not on a member entry." }
             }
