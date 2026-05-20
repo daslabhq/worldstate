@@ -43,12 +43,22 @@ export type AnchorSelector =
   | { kind: "surface";  id: string }
   | { kind: "point";    x: number; y: number; z?: number };
 
-/** Asset-scoped reference — `{ asset_id, anchor? }` is the wire shape
- *  consumers persist. `anchor` is a string-encoded AnchorSelector;
- *  omit or leave empty to address the whole asset. */
+/** Asset-scoped reference — `{ asset_id, anchor?, name? }` is the wire shape
+ *  consumers persist.
+ *
+ *  - `anchor` is a string-encoded AnchorSelector; omit or leave empty to
+ *    address the whole asset.
+ *  - `name` is an optional user-facing label, orthogonal to `anchor`. Pickers
+ *    typically auto-assign positional labels (`"A"`, `"B"`, `"C"`, ...) at
+ *    selection time and let users edit them. Surviving labels are how prompts
+ *    refer to a specific selection — "compare anchor A to anchor B" reads the
+ *    same regardless of whether the underlying asset exposes stable ids or
+ *    only positional indices. Persistence is the caller's responsibility;
+ *    nothing in the anchor grammar depends on `name`. */
 export interface AnchorRef {
   asset_id: string;
   anchor?:  string;
+  name?:    string;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,8 +154,22 @@ export const anchor = {
     z != null ? { kind: "point", x, y, z } : { kind: "point", x, y },
 };
 
-/** Compose an asset-scoped reference. */
-export function anchorRef(assetId: string, sel?: AnchorSelector): AnchorRef {
-  if (!sel || sel.kind === "widget") return { asset_id: assetId };
-  return { asset_id: assetId, anchor: formatAnchor(sel) };
+/** Compose an asset-scoped reference. Pass `name` for a user-facing label. */
+export function anchorRef(assetId: string, sel?: AnchorSelector, name?: string): AnchorRef {
+  const ref: AnchorRef = { asset_id: assetId };
+  if (sel && sel.kind !== "widget") ref.anchor = formatAnchor(sel);
+  if (name) ref.name = name;
+  return ref;
+}
+
+/** Default positional label for the n-th selection: A, B, C, ..., Z, AA, AB, ... */
+export function defaultAnchorName(index: number): string {
+  if (index < 0) throw new Error(`defaultAnchorName: negative index ${index}`);
+  let n = index;
+  let s = "";
+  do {
+    s = String.fromCharCode(65 + (n % 26)) + s;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return s;
 }

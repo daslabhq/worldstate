@@ -116,14 +116,23 @@ point[<x>,<y>] | point[<x>,<y>,<z>]   raw 2D / 3D point
 ```
 
 ```ts
-import { anchor, anchorRef, parseAnchor } from "scenecast";
+import { anchor, anchorRef, parseAnchor, defaultAnchorName } from "scenecast";
 
 anchorRef("inbox-1", anchor.item("m4"));
 //   { asset_id: "inbox-1", anchor: "item[m4]" }
 
 parseAnchor("point[1.2,0.5,2.3]");
 //   { kind: "point", x: 1.2, y: 0.5, z: 2.3 }
+
+// Optional user-facing label — pickers usually auto-assign A, B, C, … and let users edit
+anchorRef("billing-table", anchor.row(0), defaultAnchorName(0));
+//   { asset_id: "billing-table", anchor: "row[0]", name: "A" }
+
+anchorRef("billing-table", anchor.row(0), "Overdue PO");
+//   { asset_id: "billing-table", anchor: "row[0]", name: "Overdue PO" }
 ```
+
+The optional `name` is orthogonal to the selector — it's how a prompt refers to a selection ("compare anchor A to anchor B") regardless of whether the underlying asset exposes stable ids or only positional indices. The selector still addresses; the name still labels. Persistence is the caller's concern.
 
 scenecast doesn't render annotations — that's a runtime concern (drawing arrows, badges, comment popovers requires geometry the type system doesn't have). What it owns is the **contract**: every consumer reads the same selectors, the same atoms, the same world model.
 

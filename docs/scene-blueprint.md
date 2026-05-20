@@ -42,7 +42,7 @@ It sits below [`scenecast`](../README.md) (asset shapes, views, rendering) and a
   ],
 
   "members": [
-    { "email": "you@example.com", "role": "owner" }
+    { "principal": "github:octocat", "role": "owner" }
   ]
 }
 ```
@@ -53,7 +53,7 @@ Apply it:
 bun run scripts/apply-blueprint.ts ./my-world.blueprint.json
 # ✓ scenes upserted (1):  · scn_my_world
 # 1 asset(s):    + intro     → ast_...   [scn_my_world]
-# 1 member(s):   ✓ you@example.com → usr_...   [scn_my_world]
+# 1 member(s):   ✓ github:octocat → usr_...   [scn_my_world]
 ```
 
 That's the entire surface, end-to-end. Everything else in this document refines it.
@@ -76,7 +76,7 @@ A single file holds a tree of arbitrary depth. Children inherit `parentId` from 
 ```jsonc
 {
   "id": "scn_root", "name": "Root",
-  "members": [{ "email": "you@example.com", "role": "owner" }],
+  "members": [{ "principal": "github:octocat", "role": "owner" }],
   "scenes": [
     {
       "id": "scn_child", "name": "Child",
@@ -218,7 +218,7 @@ If `externalId` is omitted, `id` doubles as the external id. This is fine for da
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `id` | string | required | Plan-local handle. Used in `schedules[i].assetIds` and `tasks[i].assetIds` to reference this asset. |
+| `id` | string | required | Plan-local handle. Used as `asset_id` in `schedules[i].anchors[]` (and elsewhere) to reference this asset. |
 | `type` | string | required | Asset type, e.g. `daslab/note`, `github/repository`, `modelsdev/account`. |
 | `name` | string | required | Display label. |
 | `externalId` | string | — | Provider's native id. Stored on `assets.external_id`. |
@@ -281,13 +281,16 @@ When `fields` is declared, the existing row's JSONB column is replaced — the D
 ```jsonc
 "schedules": [
   {
-    "id":       "daily-sync",
-    "title":    "Daily models.dev sync",
-    "cron":     "0 9 * * *",
-    "prompt":   "Compare modelsdev_list_providers against the snapshot. PR drift.",
-    "assetIds": ["catalog", "repo", "snapshot"],
-    "enabled":  true,
-    "checks":   [
+    "id":      "daily-sync",
+    "cron":    "TZ=Europe/Berlin 0 9 * * *",
+    "prompt":  "Compare modelsdev_list_providers against the snapshot. PR drift.",
+    "anchors": [
+      { "asset_id": "catalog" },
+      { "asset_id": "repo" },
+      { "asset_id": "snapshot", "anchor": "row[0]" }
+    ],
+    "enabled": true,
+    "checks":  [
       { "op": "lte", "path": "$run.cost_usd", "value": 0.20,
         "expose": true, "severity": "fail", "why": "Daily cost cap." }
     ]
@@ -298,16 +301,20 @@ When `fields` is declared, the existing row's JSONB column is replaced — the D
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `id` | string | required | Plan-local handle. The applier derives a deterministic `job_*` id from `(sceneId, id)`. |
-| `title` | string | required | Human label. Shown on the schedule card. |
-| `cron` | string | required | Standard 5-field cron expression. UTC. |
-| `prompt` | string | required | What the agent is asked to do each tick. Has full access to assets named in `assetIds`. |
-| `assetIds` | `string[]` | — | Plan-local handles from `assets[]` that should be in scope for the run. |
+| `title` | string | — | Optional display name. Defaults to `id`. |
+| `cron` | string | required | Standard 5-field cron expression with optional `TZ=<IANA>` prefix. Examples: `0 6 * * *` (UTC), `TZ=Europe/Berlin 0 6 * * *` (Berlin wall-clock, DST-aware). |
+| `prompt` | string | required | What the agent is asked to do each tick. Stored on the schedule template; replayed verbatim into each scheduled run. |
+| `anchors` | `AnchorRef[]` | — | Optional explicit input attachments. Each entry is `{ asset_id, anchor? }` (see [Anchors](README.md#addressability--every-sub-element-is-anchorable)). Omit/empty to inherit the scene's full context. `asset_id` may be a blueprint-local handle (resolved at apply time) or a globally-unique asset id. |
+| `runAs` | string | — | Role slug to scope the run's permissions. References a `roles[]` slug or built-in (`owner`/`editor`/`viewer`). |
+| `tools` | object | — | Optional per-schedule `{ allow?, deny? }` override of the scene's tool scope. |
 | `enabled` | boolean | `true` | Cron fires when `true`. |
 | `checks` | `CheckExpr[]` | — | Live evaluations against the run. See [Checks](#checks). |
 
+**Anchors vs scene context.** When `anchors` is omitted or empty, the scheduled run sees the scene's full visible asset set — same as an unselected interactive run. When present, the run starts with these anchors pre-attached, identical to a user pre-selecting elements before running interactively. Sub-element selectors (`row[0]`, `item[m4]`, `step[…]`, etc.) follow the [anchor grammar](README.md#addressability--every-sub-element-is-anchorable).
+
 **Owner attribution:** the schedule's job is attributed to the first owner-role member of the scene (or any ancestor scene, inherited). If no owner is resolvable, the schedule is created but a warning is emitted.
 
-**Idempotence:** a deterministic `job_<hash>` id is derived from `(sceneId, schedule.id)` so re-apply updates the same template in place. The schedule's prompt is stored on the template's first `prompt_user` call.
+**Idempotence:** a deterministic `job_<hash>` id is derived from `(sceneId, schedule.id)` so re-apply updates the same template in place. The recurrence rule and prompt live directly on the template — the next-fire instant is derived from `cron`.
 
 ---
 
@@ -358,14 +365,21 @@ Tasks are scenebench-shaped: an `initialState` per asset + a `prompt` + an optio
 
 ```jsonc
 "members": [
-  { "email": "you@example.com", "role": "owner" }
+  { "principal": "github:octocat",     "role": "owner" },
+  { "principal": "email:foo@bar.com",  "role": "editor" }
 ]
 ```
 
+Each entry has exactly one of `principal`, `email`, or `device` — plus `role`.
+
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `email` | string | required | Resolved to `user_id` at apply time. Missing users → warning + skip. |
-| `role` | `"owner"` \| `"editor"` \| `"viewer"` | required | Scene-level role. |
+| `principal` | string | one-of | Canonical `<provider>:<identity>` form. Examples: `github:octocat`, `github:583231` (numeric user id, rename-proof), `email:foo@bar.com`, `google:<sub>`, `apple:<sub>`. The provider prefix names the auth provider; identity is unique within that provider. Use this form for new blueprints — it scales to any registered auth provider with no schema change. |
+| `email` | string | one-of | Legacy alias for `principal: "email:<addr>"`. Resolves only against email-auth users. |
+| `device` | string | one-of | Device slot slug. Provisioning binds physical devices to slots out-of-band. |
+| `role` | `"owner"` \| `"editor"` \| `"viewer"` \| custom slug | required | Built-in role or a role declared in `roles[]`. |
+
+Resolution dispatches by provider prefix: `email:` looks up an email-auth user, `github:` matches either a numeric `github_id` or a username among github-auth users, `google:` / `apple:` match the corresponding OIDC subject id, `device:` is provisioned out-of-band. Unknown providers warn and skip — forward-compatible with new auth providers added later.
 
 **Inheritance:** members declared on a scene flow downward to its `scenes[]` children for the purpose of owner attribution (schedules without explicit members inherit the parent's owner). Explicit `members[]` on a child scene replaces the inherited list for that scene.
 

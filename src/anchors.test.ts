@@ -81,6 +81,23 @@ describe("anchor builders + anchorRef", () => {
       asset_id: "a-1", anchor: "point[1.2,0.5,2.3]",
     });
   });
+
+  test("anchorRef carries optional name label", async () => {
+    const { defaultAnchorName } = await import("./anchors.js");
+    expect(anchorRef("a-1", anchor.row(0), "A")).toEqual({
+      asset_id: "a-1", anchor: "row[0]", name: "A",
+    });
+    expect(anchorRef("a-1", undefined, "Overdue PO")).toEqual({
+      asset_id: "a-1", name: "Overdue PO",
+    });
+    // defaultAnchorName: A..Z, then AA, AB, ..., AZ, BA, ...
+    expect(defaultAnchorName(0)).toBe("A");
+    expect(defaultAnchorName(25)).toBe("Z");
+    expect(defaultAnchorName(26)).toBe("AA");
+    expect(defaultAnchorName(27)).toBe("AB");
+    expect(defaultAnchorName(51)).toBe("AZ");
+    expect(defaultAnchorName(52)).toBe("BA");
+  });
 });
 
 describe("HTML renderer emits data-widget-anchor", () => {

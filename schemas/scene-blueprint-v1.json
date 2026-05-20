@@ -195,7 +195,8 @@
                   "additionalProperties": false,
                   "properties": {
                     "asset_id": { "type": "string" },
-                    "anchor":   { "type": "string", "description": "Optional sub-element selector in scenecast anchor grammar: `item[<id>]`, `row[<idx>|<id>]`, `field[<key>]`, `step[<id>]`, `metric[<id>]`, `zone[<name>]`, `object[<id>]`, `surface[<id>]`, `point[<x>,<y>(,<z>)]`. Omit to address the whole asset." }
+                    "anchor":   { "type": "string", "description": "Optional sub-element selector in scenecast anchor grammar: `item[<id>]`, `row[<idx>|<id>]`, `field[<key>]`, `step[<id>]`, `metric[<id>]`, `zone[<name>]`, `object[<id>]`, `surface[<id>]`, `point[<x>,<y>(,<z>)]`. Omit to address the whole asset." },
+                    "name":     { "type": "string", "description": "Optional user-facing label. Pickers typically auto-assign positional labels (`A`, `B`, `C`, ...) and let users edit them. Lets a prompt reference a selection by a stable name (`Overdue PO`) regardless of whether the underlying asset exposes stable ids or only positional indices." }
                   }
                 }
               },
